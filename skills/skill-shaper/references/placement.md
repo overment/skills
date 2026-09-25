@@ -1,6 +1,6 @@
 # Placement and agent differences
 
-Read this during step 4 when choosing where a skill lives, and during step 6 before using any frontmatter field outside the Agent Skills spec. These facts come from each vendor's documentation, checked September 2026. Agents change quickly; when a detail matters, confirm it in the linked docs.
+Read this when choosing where a skill lives, or before using any frontmatter field outside the Agent Skills spec. These facts come from each vendor's documentation, checked September 2026. Agents change quickly; when a detail matters, confirm it in the linked docs.
 
 ## Contents
 
@@ -47,8 +47,6 @@ ln -s ../../.agents/skills/<name> .claude/skills/<name>
 ```
 
 **Skills from a shared repository:** clone once and symlink each skill folder into the locations above, so `git pull` updates every agent at once.
-
-Put a skill in the project when it names the repo's paths, commands, or conventions, or when teammates need it. Put it in the global folder when it wraps a personal tool or a workflow that crosses projects.
 
 ## Name conflicts
 

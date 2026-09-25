@@ -10,7 +10,7 @@ This is a public repository of Agent Skills. Everything committed here is publis
 - No personal paths, hostnames, private project names, credentials, or `.env` values in any skill, eval, or test. Skills get installed on other people's machines.
 - Nothing written for humans inside a skill folder (README, CHANGELOG). The repository README describes the skills.
 - Every skill has `evals/<name>.md` with routing prompts that should and shouldn't trigger it. Scripts get unit tests in `tests/`.
-- When a skill changes behaviour, bump `metadata.version` in its frontmatter and update its row in the README table.
+- When a skill changes behaviour, bump `metadata.version` in its frontmatter and update its entry in the README list.
 
 ## Checks before committing
 
