@@ -1,10 +1,10 @@
 ---
 name: skill-shaper
-description: Creates or reshapes Agent Skills (SKILL.md folders) for Claude Code, Codex and Cursor, checked against the skills already installed. Use when the user asks to make a skill, turn a workflow or conversation into one, or fix a skill that fires on the wrong requests or never fires. Not for small edits to a skill, writing about skills, or AGENTS.md and CLAUDE.md rules.
+description: Creates a new agent skill or reshapes one that triggers on the wrong requests. Use when asked to make a skill, turn a workflow into a skill, or fix how a skill triggers. Not for writing about skills.
 license: MIT
 metadata:
   author: overment
-  version: "0.6.0"
+  version: "0.6.1"
 ---
 
 # Skill Shaper
