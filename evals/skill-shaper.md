@@ -38,10 +38,11 @@ Checks for every scenario:
 
 - No more than three questions, in one message.
 - No motive presented as fact without a source.
-- `validate.py` reports no errors on whatever was built.
+- Whatever was built meets the spec: the name matches its folder, and the description is at most 1,024 characters, third person, and ends with a "Not for…" line.
+- B7 steers with a named concept or guiding questions rather than a rule list. B6 keeps its parsing in a script.
 - B6 and B7 produce visibly different shapes. If every skill comes out with the same headings, the shaping failed.
 - The run without skill-shaper does worse on at least half the scenarios. If it doesn't, skill-shaper isn't adding enough to justify its context.
 
 ## Self-rebuild
 
-Give a fresh session with skill-shaper installed this prompt: "Build a skill that helps people create other agent skills. It should interview briefly, check installed skills for collisions, and pick structure by judgment instead of a template." Compare the result with `skills/skill-shaper`. It should reach for the same decisions (evidence first, the is-it-a-skill gate, a collision check against the installed skills, a validator) and should not come out longer.
+Give a fresh session with skill-shaper installed this prompt: "Build a skill that helps people create other agent skills. It should interview briefly, check installed skills for collisions, and pick structure by judgment instead of a template." Compare the result with `skills/skill-shaper`. It should reach for the same decisions (the job behind the request, the is-it-a-skill gate, boundaries with installed skills, concepts and questions for judgment work) and should not come out longer.

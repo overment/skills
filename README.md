@@ -4,7 +4,7 @@ Agent Skills by overment. They use the open [Agent Skills](https://agentskills.i
 
 ## Skills
 
-- **[skill-shaper](skills/skill-shaper/)** creates or reshapes a skill, checked against the skills you already have. It catches trigger collisions, decides where the skill lives and how each agent invokes it, validates the result, and hands over prompts to test routing.
+- **[skill-shaper](skills/skill-shaper/)** creates or reshapes a skill, checked against the skills you already have. It works out the job behind the request, decides whether a skill is the right tool, draws clear boundaries with neighbouring skills, and picks the lightest steering for the task: concepts and guiding questions for judgment work, exact steps for fragile work.
 
 ## Install
 
@@ -16,18 +16,13 @@ ln -s "$PWD/skills/skills/skill-shaper" ~/.agents/skills/   # Codex, Cursor
 ln -s "$PWD/skills/skills/skill-shaper" ~/.claude/skills/   # Claude Code
 ```
 
-Or install it in one project by linking into that repo's `.agents/skills/` or `.claude/skills/`. Its validator needs Python 3.9+ and nothing else.
+Or install it in one project by linking into that repo's `.agents/skills/` or `.claude/skills/`.
 
 Skills can steer an agent's tools and shell, so read one before you install it.
 
 ## Develop
 
-```sh
-python3 -m unittest discover -s tests
-python3 skills/skill-shaper/scripts/validate.py skills/<name>
-```
-
-Routing prompts and behaviour scenarios for each skill are in `evals/`.
+Each skill has routing prompts and behaviour scenarios in `evals/`. Run them in a fresh session with and without the skill.
 
 ## License
 
