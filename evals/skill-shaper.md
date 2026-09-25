@@ -44,4 +44,4 @@ Checks for every scenario:
 
 ## Self-rebuild
 
-Give a fresh session with skill-shaper installed this prompt: "Build a skill that helps people create other agent skills. It should interview briefly, check installed skills for collisions, and pick structure by judgment instead of a template." Compare the result with `skills/skill-shaper`. It should reach for the same decisions (evidence first, the is-it-a-skill gate, a collision scan, a validator) and should not come out longer.
+Give a fresh session with skill-shaper installed this prompt: "Build a skill that helps people create other agent skills. It should interview briefly, check installed skills for collisions, and pick structure by judgment instead of a template." Compare the result with `skills/skill-shaper`. It should reach for the same decisions (evidence first, the is-it-a-skill gate, a collision check against the installed skills, a validator) and should not come out longer.
