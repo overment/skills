@@ -16,7 +16,7 @@ ln -s "$PWD/skills/skills/skill-shaper" ~/.agents/skills/   # Codex, Cursor
 ln -s "$PWD/skills/skills/skill-shaper" ~/.claude/skills/   # Claude Code
 ```
 
-Or install it in one project by linking into that repo's `.agents/skills/` or `.claude/skills/`. The bundled scripts need Python 3.9+ and nothing else.
+Or install it in one project by linking into that repo's `.agents/skills/` or `.claude/skills/`. Its validator needs Python 3.9+ and nothing else.
 
 Skills can steer an agent's tools and shell, so read one before you install it.
 

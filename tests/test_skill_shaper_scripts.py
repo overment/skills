@@ -1,4 +1,4 @@
-"""Tests for skill-shaper's scan.py and validate.py.
+"""Tests for skill-shaper's validate.py and its frontmatter reader.
 
 Run from the repository root:  python3 -m unittest discover -s tests
 """
@@ -150,65 +150,6 @@ class ValidateTest(unittest.TestCase):
             skill = write_skill(Path(tmp) / "imperative", description="Extract action items. Use when asked.")
             report = json.loads(run("validate.py", skill, "--json", home=tmp).stdout)
             self.assertTrue(any("opens as a command" in w for w in report["warnings"]))
-
-
-class ScanTest(unittest.TestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.home = Path(self.tmp.name)
-        agents = self.home / ".agents" / "skills"
-        write_skill(agents / "shared")
-        (self.home / ".claude" / "skills").mkdir(parents=True)
-        (self.home / ".claude" / "skills" / "shared").symlink_to(agents / "shared")
-        write_skill(self.home / ".cursor" / "skills" / "shared", body="Edited copy.\n")
-        write_skill(self.home / ".codex" / "skills" / "codex-only")
-        (self.home / ".agents" / "skills" / "broken").mkdir()
-        (self.home / ".agents" / "skills" / "broken" / "SKILL.md").write_text("no frontmatter\n")
-        self.project = self.home / "work" / "repo"
-        (self.project / ".git").mkdir(parents=True)
-        write_skill(self.project / ".agents" / "skills" / "local-only")
-
-    def tearDown(self):
-        self.tmp.cleanup()
-
-    def scan(self, *args):
-        result = run("scan.py", "--project", self.project, "--json", *args, home=self.home)
-        return result, json.loads(result.stdout)
-
-    def test_report(self):
-        result, report = self.scan()
-        self.assertEqual(result.returncode, 0, result.stderr)
-        skills = {s["key"]: s for s in report["skills"]}
-
-        shared = skills["shared"]
-        self.assertEqual(shared["seen_by"], ["claude", "codex", "cursor"])
-        self.assertTrue(any(n.startswith("copies differ") for n in shared["notes"]))
-        self.assertIn("cursor loads 2 separate copies", shared["notes"])
-        linked = [loc for loc in shared["locations"] if loc["target"]]
-        self.assertEqual(len(linked), 1)
-
-        self.assertEqual(skills["codex-only"]["seen_by"], ["cursor"])
-        self.assertEqual(skills["local-only"]["seen_by"], ["codex", "cursor"])
-        self.assertTrue(skills["broken"]["problems"])
-
-    def test_home_flag_overrides_environment(self):
-        with tempfile.TemporaryDirectory() as other:
-            result = run("scan.py", "--project", self.project, "--home", self.home, "--json", home=other)
-            keys = {s["key"] for s in json.loads(result.stdout)["skills"]}
-            self.assertIn("shared", keys)
-
-    def test_missing_home_is_an_error(self):
-        result = run("scan.py", "--project", self.project, "--home", self.home / "nope", home=self.home)
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("not a directory", result.stderr)
-
-    def test_check_name(self):
-        free = run("scan.py", "--project", self.project, "--check-name", "brand-new", home=self.home)
-        self.assertEqual(free.returncode, 0, free.stdout)
-        for taken in ("shared", "local-only", "skill-creator", "create-skill", "synced", "Bad_Name"):
-            with self.subTest(taken):
-                result = run("scan.py", "--project", self.project, "--check-name", taken, home=self.home)
-                self.assertEqual(result.returncode, 1, result.stdout)
 
 
 if __name__ == "__main__":

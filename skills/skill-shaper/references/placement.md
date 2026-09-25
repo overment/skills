@@ -54,8 +54,6 @@ ln -s ../../.agents/skills/<name> .claude/skills/<name>
 - **Codex:** same-name skills are not merged; both appear, and the user has to choose.
 - **Cursor:** no documented precedence. Treat any duplicate name as a conflict.
 
-`scripts/scan.py --check-name <name>` checks every folder above and the agents' built-in skills.
-
 ## Frontmatter beyond the spec
 
 The Agent Skills spec defines `name`, `description`, `license`, `compatibility`, `metadata`, and the experimental `allowed-tools`. Every agent reads those. The fields below are ignored by agents that don't list them, so a skill relying on them behaves differently elsewhere.
