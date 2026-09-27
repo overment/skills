@@ -329,6 +329,32 @@ describe("router: review findings", () => {
   });
 });
 
+describe("render: a line and its label belong to what they touch", () => {
+  const threads = {
+    id: "t", grid: [4, 3],
+    nodes: {
+      user: { label: "User", at: [0, 1], kind: "actor" }, main: { label: "Main thread", at: [1, 1], focal: true },
+      auth: { label: "Auth audit", at: [2, 0] }, bill: { label: "Billing audit", at: [2, 1] }, srch: { label: "Search audit", at: [2, 2] },
+      answer: { label: "Report", at: [3, 1] },
+    },
+    groups: { own: { label: "Separate threads", from: [2, 0], to: [2, 2] } },
+    edges: ["user -> main", { "main -> auth": "spawn_subagent" }, "main -> bill", "main -> srch", { "auth --> main": "result" }, "main -> answer"],
+  };
+  test("a connector through a zone neither end is in warns, naming the zone", () => {
+    const { ctx, warnings } = context();
+    renderFigure(figure(threads, ctx), ctx);
+    expect(warnings.some((w) => w.rule === "route" && w.message.includes('main -> answer runs through the "Separate threads" zone'))).toBe(true);
+  });
+  test("a label as close to another line as to its own warns; a reply beside its call does not", () => {
+    const { ctx, warnings } = context();
+    renderFigure(figure(threads, ctx), ctx);
+    expect(warnings.some((w) => w.rule === "edge-label" && w.message.includes('"spawn_subagent"') && w.message.includes("wrong line"))).toBe(true);
+    const pair = context();
+    renderFigure(figure(sampleFigure, pair.ctx), pair.ctx);
+    expect(pair.warnings.filter((w) => w.message.includes("wrong line"))).toEqual([]);
+  });
+});
+
 describe("render: review findings", () => {
   const crossing = (edges: string[]) => ({
     id: "x", grid: [3, 3],
@@ -418,10 +444,10 @@ describe("model: relations per layout", () => {
     expect(new Set(els.api!.related)).toEqual(new Set(["app", "auth", "billing", "app->api", "api->auth", "api->billing"]));
     expect(els.api).toMatchObject({ crumb: ["app"], pos: "level 2 of 3", links: [{ rel: "Parent", ids: ["app"] }, { rel: "Children", ids: ["auth", "billing"] }] });
     expect(els.app!.facts).toEqual([
-      { k: "Descendants", v: "7" },
-      { k: "Web client", v: "1 descendant", ref: "web" },
-      { k: "API", v: "2 descendants", ref: "api" },
-      { k: "Workers", v: "1 descendant", ref: "workers" },
+      { k: "Parts below it", v: "7" },
+      { k: "Web client", v: "1 part below", ref: "web" },
+      { k: "API", v: "2 parts below", ref: "api" },
+      { k: "Workers", v: "1 part below", ref: "workers" },
     ]);
     expect(els.api!.context).toBeUndefined();
   });
@@ -436,11 +462,11 @@ describe("model: relations per layout", () => {
       { rel: "Crossing in from API gateway", ids: ["catalog", "cart", "orders"] },
       { rel: "Crossing out from Orders", ids: ["payments"] },
     ]);
-    expect(els.private!.facts).toEqual([{ k: "Parts inside", v: "5" }, { k: "Crossing edges", v: "3 in, 1 out" }]);
+    expect(els.private!.facts).toEqual([{ k: "Parts inside", v: "5" }, { k: "Connectors across its border", v: "3 in, 1 out" }]);
     expect(els.private!.kind).toBe("trust boundary");
     expect(els.orders).toMatchObject({ crumb: ["private"], kind: "service" });
     expect(els.orders!.context).toContain("private");
-    expect(els.orders!.facts).toContainEqual({ k: "Crosses Private network", v: "2 connectors" });
+    expect(els.orders!.facts).toContainEqual({ k: "Crosses the Private network border", v: "2 connectors" });
   });
 
   test("flow: relations in reading order in the author's words, what comes in first", () => {
@@ -450,10 +476,10 @@ describe("model: relations per layout", () => {
       edges: ["shop -> checkout", "checkout => pay: charges card", "pay --> checkout: confirms", "checkout -> db: saves order", "checkout ~> mail: queues receipt"],
     }));
     expect(els.checkout!.links).toEqual([
-      { rel: "←", ids: ["shop"] }, { rel: "confirms ←", ids: ["pay"] },
+      { rel: "From", ids: ["shop"] }, { rel: "confirms ←", ids: ["pay"] },
       { rel: "charges card →", ids: ["pay"] }, { rel: "saves order →", ids: ["db"] }, { rel: "queues receipt →", ids: ["mail"] },
     ]);
-    expect(els.shop!.facts).toEqual([{ k: "Downstream", v: "4 parts" }]);
+    expect(els.shop!.facts).toEqual([{ k: "Leads on to", v: "4 parts" }]);
     expect(els.shop!.context).toEqual(expect.arrayContaining(["pay", "db", "mail"]));
     expect(els["checkout->pay"]).toMatchObject({ kind: "link", links: [{ rel: "Paired with", ids: ["pay->checkout"] }] });
     expect(els.pay!.kind).toBe("external");
@@ -468,7 +494,7 @@ describe("model: relations per layout", () => {
     expect(els.model!.facts).toEqual([{ k: "In a loop with", v: "3 parts" }, { k: "Leads out to", v: "2 parts" }, { k: "Comes in from", v: "2 parts" }]);
     expect(els.model!.links).toContainEqual({ rel: "In a loop with", ids: expect.arrayContaining(["ctx", "check", "tools"]) });
     // done --> user closes a round trip through a reply, which does not make User part of a loop
-    expect(els.user!.facts).toEqual([{ k: "Downstream", v: "5 parts" }, { k: "Upstream", v: "5 parts" }]);
+    expect(els.user!.facts).toEqual([{ k: "Leads on to", v: "5 parts" }, { k: "Reached from", v: "5 parts" }]);
   });
 
   test("hub: satellites keep their peers at rest instead of lighting them", () => {
@@ -504,7 +530,7 @@ describe("model: relations per layout", () => {
       nodes: { ship: { label: "Ship", at: [0, 0] }, measure: { label: "Measure", at: [1, 0] }, learn: { label: "Learn", at: [1, 1] }, decide: { label: "Decide", at: [0, 1] } },
       edges: ["ship -> measure", "measure -> learn: spots trends", "learn -> decide", "decide -> ship"],
     }));
-    expect(els.learn).toMatchObject({ kind: "phase", pos: "3 / 4", links: [{ rel: "spots trends ←", ids: ["measure"] }, { rel: "→", ids: ["decide"] }] });
+    expect(els.learn).toMatchObject({ kind: "phase", pos: "3 / 4", links: [{ rel: "spots trends ←", ids: ["measure"] }, { rel: "To", ids: ["decide"] }] });
     expect(els.learn!.facts).toBeUndefined();
   });
 

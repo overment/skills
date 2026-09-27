@@ -429,7 +429,7 @@ export const blockModule: BlockModule<UmlBlock> = {
         HIERARCHY.has(r.kind) && { k: "Inherits", v: membersOf(byId.get(head) as UmlClass).map((m) => m.text).join(", ") || "nothing shown" },
       ];
       const e: ElementInfo = { id: r.id, type: "edge", label: r.title, kind: r.kind, figure: block.id, from: r.from, to: r.to, about: r.about, facts: factList(facts), say: r.title };
-      if (r.fromMult && r.toMult) e.value = `${r.fromMult} to ${r.toMult}`;
+      // multiplicity reads in full in its fact ("0..* Order to 1 Customer"); a bare "0..* to 1" above it would say it twice
       if (r.set) e.related = [r.set];
       elements[r.id] = e;
     }

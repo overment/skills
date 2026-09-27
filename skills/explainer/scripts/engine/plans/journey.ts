@@ -235,7 +235,7 @@ export const blockModule: BlockModule<JourneyBlock> = {
     const alias = new Map((block.sentiment?.points ?? []).map((p, i) => [p.id, block.stages[i].id]));
     const markers = noteMarks(block.notes, drawn, alias);
     // the marker lane: note markers and the docked card's pin; after a head's label, floated into a card's first line
-    const note = (id: string) => `<span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"></span>${markers.get(id) ?? ""}</span>`;
+    const note = (id: string) => `<span class="x-plan-lane" aria-hidden="true">${markers.get(id) ?? ""}</span>`;
     const parts = [CORNER];
     block.stages.forEach((s, i) => {
       parts.push(mark({ id: s.id, label: s.label, cls: "x-board-head x-plan-head x-journey-stage", attrs: ` data-nav="0,${i}"` }, `<span class="x-mark-shape x-plan-head-label">${esc(s.label)}</span>${note(s.id)}`, true));

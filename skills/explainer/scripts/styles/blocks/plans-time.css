@@ -30,6 +30,9 @@
 .x-gantt-task .x-anchor { fill: none; stroke: none; pointer-events: none; }
 .x-gantt-date { pointer-events: none; }
 
+/* a connector runs over the bars on a band of canvas, so where it passes a bar it reads as passing, not joining */
+.x-gantt-halo { fill: none; stroke: var(--x-bg); stroke-width: 5; stroke-linejoin: round; pointer-events: none; }
+
 /* critical path: ink connectors at rest, the key swatch matches */
 .x-gantt-crit .x-edge-line { stroke: var(--x-text); stroke-width: 1.75; }
 .x-gantt-crit-key .x-gantt-key-line { stroke: var(--x-text); stroke-width: 1.75; stroke-linecap: round; }

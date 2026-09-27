@@ -5,7 +5,7 @@ import {
   storyFrame, toCsv, type State,
 } from "../client/client.ts";
 import { composite, contrast, DIM_MIN, pickInk, saturate, type Rgb, type Rgba } from "../client/ink.ts";
-import { cardData, compareData, fmtDelta, parseNum, relationGroups } from "../client/popover.ts";
+import { cardData, compareData, fmtDelta, parseNum, relationGroups, sayOnce } from "../client/popover.ts";
 
 const node = (id: string, label: string, kind = "service"): ElementInfo => ({ id, type: "node", label, kind, figure: "auth" });
 const edge = (from: string, to: string, kind = "flow", label = ""): ElementInfo => ({
@@ -240,6 +240,34 @@ describe("card: content", () => {
   });
   test("unknown id", () => {
     expect(cardData(model, "nope")).toBeNull();
+  });
+  test("each thing once: no fact repeats the value, the kind, a heading or the chips under it", () => {
+    const chips = (...t: string[]) => t.map((x) => ({ id: x.toLowerCase(), text: x }));
+    const { facts, groups } = sayOnce("2 cards", "Column · 1 of 4", [
+      { k: "Load", v: "2 cards" },                                  // the value again
+      { k: "Kind", v: "column" },                                   // the eyebrow again
+      { k: "Steps", v: "2" },                                       // the heading of the chips below
+      { k: "Critical", v: "Search and Browse aisles" },             // the chips below, as a sentence
+      { k: "Blocked", v: "none" },                                  // new: kept
+    ], [{ rel: "Steps", chips: chips("Search", "Browse aisles") }]);
+    expect(facts).toEqual([{ k: "Blocked", v: "none" }]);
+    expect(groups.map((g) => g.rel)).toEqual(["Steps"]);
+  });
+  test("chips the facts already link to, or the value spells out, go", () => {
+    const linked = sayOnce("", "Node", [{ k: "Web", v: "1 part below", ref: "web" }], [{ rel: "Children", chips: [{ id: "web", text: "Web" }] }]);
+    expect(linked.groups).toEqual([]);
+    expect(linked.facts).toHaveLength(1);
+    const other = sayOnce("", "Task", [{ k: "Ends", v: "1 d before Public launch", ref: "launch" }], [{ rel: "Blocks", chips: [{ id: "launch", text: "Public launch" }] }]);
+    expect(other.groups.map((g) => g.rel)).toEqual(["Blocks"]); // linked for another reason: the relation stays
+    // one chip under unrelated words does not stand for a fact that happens to name the same part
+    const reach = sayOnce("", "State", [{ k: "Can no longer reach", v: "Cart" }], [{ rel: "checks out ←", chips: [{ id: "cart", text: "Cart" }] }]);
+    expect(reach.facts).toHaveLength(1);
+    const crit = sayOnce("", "Group", [{ k: "Critical", v: "Public launch" }], [{ rel: "On the critical path", chips: [{ id: "l", text: "Public launch" }] }]);
+    expect(crit.facts).toEqual([]);
+    // a value that only shares the words, in another case, keeps the chip: "sends call 1" is not the Call 1 column
+    expect(sayOnce("sends call 1", "Message", [], [{ rel: "Sends context", chips: [{ id: "c1", text: "Call 1" }] }]).groups).toHaveLength(1);
+    const spelled = sayOnce("orders.user_id → users.id", "Foreign key", [], [{ rel: "References", chips: [{ id: "u", text: "users.id" }] }]);
+    expect(spelled.groups).toEqual([]);
   });
 });
 

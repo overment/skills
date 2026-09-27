@@ -285,3 +285,22 @@ describe("base.css", () => {
     expect(used.filter((v) => !defined.has(v))).toEqual([]);
   });
 });
+
+describe("series against the accent", () => {
+  // Hue in degrees from a #rrggbb colour: enough to tell orange from amber from blue.
+  const hue = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b), d = max - Math.min(r, g, b);
+    if (!d) return 0;
+    const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return (h * 60 + 360) % 360;
+  };
+  const apart = (a: number, b: number) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+  test("the first four series hues stay well clear of the accent, so a series never reads as focal", async () => {
+    const theme = await loadTheme(DEFAULT_FILE);
+    for (const mode of ["light", "dark"] as Mode[]) {
+      const accent = hue(theme.colors[mode].accent);
+      for (const c of theme.series[mode].slice(0, 4)) expect(apart(hue(c), accent)).toBeGreaterThanOrEqual(45);
+    }
+  });
+});

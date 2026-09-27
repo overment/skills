@@ -54,16 +54,16 @@ The values are theme tokens (`--x-dim-fill`, `--x-dim-stroke`, `--x-dim-sat`, `-
 
 ## The card
 
-A click opens a card inside the figure, next to the element, with a thin leader line to it (a caret when they nearly touch). It never covers the selected element, and it tries hard not to cover what the selection lights up or any label: when no spot beside the element is clear, it docks in a right gutter (the plot shrinks a little, its layout doesn't change) or under the figure, marked with a filled ink dot at the element and the same dot in the card. The dot has no numeral: numbers on the canvas are always the author's notes. On screens under 640px it always docks under the figure. Its position depends only on the layout and the window width, so `shot` always shows the same card.
+A click opens a card inside the figure, next to the element, with a thin leader line to it (a caret when they nearly touch). It never covers the selected element, and it tries hard not to cover what the selection lights up or any label: when no spot beside the element is clear, it docks in a right gutter (the plot shrinks a little, its layout doesn't change) or under the figure. A docked card draws no marker of its own: the ink ring already shows what it is about, and the card's title names it. On screens under 640px it always docks under the figure. Its position depends only on the layout and the window width, so `shot` always shows the same card.
 
 What it shows, top to bottom:
 
 - **Eyebrow:** the kind in the legend's words, plus a position: `BAR · 5 OF 7`, `DATA STORE`, `TASK · CRITICAL`.
 - **Breadcrumb** for nested things (`Data › Primary database`), then the **title**. A connector's title is its two ends, each a chip.
 - **Value** with its unit, never a repeat of the title.
-- **Facts:** up to 5 computed rows (rank, share, delta, slack, conversion). A fact that names another element is a chip that selects it. When a reading-panel note points at the element, it comes first as "Note n".
+- **Facts:** up to 5 computed rows (rank, share, delta, slack, conversion). A fact that names another element is a chip that selects it. When a reading-panel note points at the element, it comes first as "Note n". Each thing is said once: a fact that repeats the value, the kind in the eyebrow, the `about` sentence or the chips below it is left out, so a reader who just joined never reads a line twice. A value too long for the rest of its line moves under its key rather than squeeze it.
 - **About:** the author's text.
-- **Relations** as labelled chip groups: the engine's semantic groups ("Waits for", "Flows to", "Referenced by"), or else the connectors in reading order: **In** holds "Source → verb", **Out** holds "verb → Target". Chips wrap; nothing is truncated.
+- **Relations:** the engine's semantic groups ("Waits for", "Flows to", "Referenced by"), or else the connectors in reading order, in the author's words ("confirms ←", "charges card →"; an unlabelled one says "From" or "To"). A relation to one part is one row, words left and chip right; several parts under the same words share a heading over their chips. A relation to only the breadcrumb or an edge's own ends is left out. Chips wrap; nothing is truncated.
 - **Mentioned in text:** up to two linked sentences (full view). A click scrolls to the sentence and flashes it.
 - **Actions:** ‹ Back (after following a chip; up to 8 steps), Compare, Hide (series with a legend entry), Copy link, Play from here (when the element is in a scene).
 
@@ -186,7 +186,7 @@ Any block may accept these. Parse them with the kit so every block reads them th
 | `.x-pop` | last child of `.x-stage` | The in-figure card, `role=dialog` |
 | `.x-scroll` | first child of `.x-stage` | The horizontal scroller around the svg or board; the card and leader sit outside it, so it never clips them |
 | `.x-sel-layer`, `.x-sel-ring` | last group of the svg | Ring clones for the selection. `.x-sel-under` is the bg gap under a ring; lines and filled paths get `.x-sel-halo` + `.x-sel-clone` / `.x-sel-outline` (also `.x-sel-ring`). Variants: `.x-ring-cmp` (dashed), `.x-ring-hover` (1px dashed) |
-| `.x-leader` | svg overlay in `.x-stage` | The leader line and dot, the caret, or the dock marker ❶ |
+| `.x-leader` | svg overlay in `.x-stage` | The leader line and dot, or the caret |
 | `.x-anchor` | a part inside a mark | Where the card and note markers point. Fallbacks: a connector's label, else the middle of its path; a series line's end; a wide bar's value end, a tall bar's top; else the bbox of `.x-mark-shape` or `.x-node-box`. An id with no mark of its own points at the union of its members' marks |
 | `.x-on-sel`, `.x-on-rel`, `.x-on-hover` | children of a mark | Hidden until the mark is selected, related or hovered |
 | `.x-ref-line`, `.x-ref-rule`, `.x-ref-label` | svg group | Reference line from `refLine`, `data-axis` x or y. Not `.x-ref`, which is a prose reference link |

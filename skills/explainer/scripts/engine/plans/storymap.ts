@@ -187,7 +187,7 @@ export const blockModule: BlockModule<StorymapBlock> = {
     const drawn = new Set([...block.activities.map((a) => a.id), ...block.steps.map((st) => st.id), ...block.releases.map((r) => r.id), ...block.stories.map((k) => k.id)]);
     const markers = noteMarks(block.notes, drawn);
     // the marker lane: note markers and the docked card's pin; after a head's label, floated into a card's first line
-    const note = (id: string) => `<span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"></span>${markers.get(id) ?? ""}</span>`;
+    const note = (id: string) => `<span class="x-plan-lane" aria-hidden="true">${markers.get(id) ?? ""}</span>`;
     const parts = [CORNER];
     let col = 0;
     for (const a of block.activities) {

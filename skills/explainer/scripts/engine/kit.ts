@@ -606,6 +606,15 @@ export const NOTE_R = 10;
 /** The label size a number or tag renders at when the caller passes no theme size. */
 const SMALL = 13;
 
+/** What a marker nearer another mark than its own target costs: more than a sliver of overlap, less than covering a label. */
+const AMBIGUOUS = 120;
+
+/** Distance from a point to the nearest edge of a frame; 0 inside it. */
+function gap(x: number, y: number, f: Frame): number {
+  const dx = Math.max(f.x - x, 0, x - f.x - f.w), dy = Math.max(f.y - y, 0, y - f.y - f.h);
+  return Math.hypot(dx, dy);
+}
+
 function overlap(a: Frame, b: Frame): number {
   const w = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
   const h = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
@@ -641,8 +650,10 @@ export function notes(block: { id?: string; notes?: NoteSpec[] }, anchors: Recor
       const b = opts.bounds;
       let score = b && (box.x < b.x || box.y < b.y || box.x + box.w > b.x + b.w || box.y + box.h > b.y + b.h) ? 1000 : 0;
       score += overlap(box, a);
-      // every other mark with an anchor is in the way too: a marker never sits on a mark
-      for (const [id, o] of Object.entries(anchors)) if (id !== target) score += overlap(box, o);
+      // every other mark with an anchor is in the way too: a marker never sits on a mark, and a spot nearer another
+      // mark than its own target reads as that mark's note
+      const own = gap(cx, cy, a);
+      for (const [id, o] of Object.entries(anchors)) if (id !== target) score += overlap(box, o) + (gap(cx, cy, o) < own ? AMBIGUOUS : 0);
       for (const o of opts.obstacles ?? []) score += overlap(box, o);
       for (const p of placed) score += 3 * overlap(box, p);
       if (score < bestScore) { best = [cx, cy]; bestScore = score; }

@@ -839,7 +839,6 @@ export function boot(): void {
     const el = model.elements[id];
     const legend = index.get(id)?.some((x) => x.matches(".x-legend-item"));
     return {
-      pin: true,
       note: noteFor(id),
       mentions: mentionsOf(id),
       back: back.length ? { id: back[back.length - 1], text: model.elements[back[back.length - 1]]?.label ?? back[back.length - 1] } : undefined,
@@ -851,8 +850,8 @@ export function boot(): void {
   };
   const bodyFor = (s: State, popId: string): { id: string; body: HTMLElement } | null => {
     const { story, scene } = frameOf(s);
-    if (scene?.active) return scene.note ? { id: scene.active, body: renderCallout(scene.count, scene.note, popId, true) } : null;
-    if (story?.sel && story.note) return { id: story.sel, body: renderCallout(story.count, story.note, popId, true) };
+    if (scene?.active) return scene.note ? { id: scene.active, body: renderCallout(scene.count, scene.note, popId) } : null;
+    if (story?.sel && story.note) return { id: story.sel, body: renderCallout(story.count, story.note, popId) };
     const { sel, cmp } = frameOf(s);
     if (!sel) return null;
     if (cmp) {
@@ -971,18 +970,9 @@ export function boot(): void {
     if (p.mode === "dock-below") {
       host.classList.add("is-dock-below");
       pop.style.left = pop.style.top = "";
+      // The ink ring marks the selection, so nothing is drawn beside it: a numbered dot there would be one more
+      // mark for a new reader to decode.
       const a = rel(anchorBox(anchors, id));
-      // The first free spot around the anchor: above its middle, then its corners, then below; never on a
-      // callout or a label (beside a bar sits its value label).
-      const busy = $$<Element>(".x-callout, text", host).filter((t) => !t.closest(".x-leader")).map((t) => rel(t.getBoundingClientRect()));
-      const spots: [number, number][] = [
-        [a.x + a.w / 2, a.y - 14], [a.x + a.w + 10, a.y - 10], [a.x - 10, a.y - 10], [a.x + a.w / 2, a.y + a.h + 14], [a.x + a.w + 14, a.y + a.h / 2],
-      ];
-      const free = spots.find(([x, y]) => y >= 10 && !busy.some((b) => x + 10 > b.x && x - 10 < b.x + b.w && y + 10 > b.y && y - 10 < b.y + b.h));
-      const [cx, cy] = free ?? [a.x + a.w / 2, Math.max(10, a.y - 14)];
-      // a board mark with its own pin slot (plans-boards) shows the 1 in its marker lane instead
-      const lanePin = anchors.length === 1 && anchors[0].querySelector(":scope > .x-plan-lane > .x-plan-pin, :scope > * > .x-plan-lane > .x-plan-pin");
-      if (!lanePin) overlay.append(ns("circle", { class: "x-leader-num", cx, cy, r: 6 }));
       if (mobile) {
         const scroll = host.querySelector<HTMLElement>(":scope > .x-scroll");
         if (scroll && scroll.scrollWidth > scroll.clientWidth) scroll.scrollLeft = a.x + scroll.scrollLeft + a.w / 2 - scroll.clientWidth / 2;
@@ -1127,6 +1117,9 @@ export function boot(): void {
         });
       };
       const wires = $$<Element>(".x-edge", stage).filter(within).map((el) => ({ id: el.getAttribute("data-id") ?? "", rects: along(el) }));
+      // boxes too: a leader through a part it is not about reads as pointing at that part
+      const parts = $$<Element>(".x-node, .x-mark", stage).filter((el) => within(el) && !el.querySelector(".x-mark"))
+        .map((el) => ({ id: el.getAttribute("data-id") ?? "", rect: rel(el.getBoundingClientRect()) }));
       spots.forEach((r, i) => {
         const { box, item } = boxes[i];
         if (!r) return box.remove();
@@ -1135,7 +1128,8 @@ export function boot(): void {
         const l = leader(r, nearest(r, item), labels);
         // A far callout (in a lane) is paired with its marker by the number alone, like a far card.
         const refs = refIds(box.dataset.refs);
-        const wired = wires.some((w) => !refs.includes(w.id) && w.rects.some((b) => crosses(l.x1, l.y1, l.x2, l.y2, b)));
+        const wired = wires.some((w) => !refs.includes(w.id) && w.rects.some((b) => crosses(l.x1, l.y1, l.x2, l.y2, b)))
+          || parts.some((m) => !refs.includes(m.id) && crosses(l.x1, l.y1, l.x2, l.y2, m.rect));
         const far = l.length > LEADER_MAX || labels.some((b) => crosses(l.x1, l.y1, l.x2, l.y2, b)) || wired;
         if (!l.caret && !far) lines.append(ns("line", { class: "x-callout-line", "data-note": box.dataset.note!, x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2 }));
       });
@@ -1161,7 +1155,7 @@ export function boot(): void {
     const { sel } = frameOf(s);
     const d = sel ? cardData(model, sel) : null;
     for (const p of panels) {
-      if (d && sel) p.replaceChildren(renderCard(d, `${p.id || "x-detail"}-card`, { ...extrasFor(sel), pin: false, mentions: [] }));
+      if (d && sel) p.replaceChildren(renderCard(d, `${p.id || "x-detail"}-card`, { ...extrasFor(sel), mentions: [] }));
       else p.innerHTML = empty.get(p) ?? "";
       if (p.dataset.placement !== "inline") p.hidden = !d;
     }

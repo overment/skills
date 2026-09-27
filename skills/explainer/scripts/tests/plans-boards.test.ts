@@ -116,7 +116,7 @@ describe("kanban", () => {
   test("blocked card shows a danger dot and the word blocked; tags are chips that are marks", () => {
     const { html, elements } = build(kanban, board);
     expect(html).toContain(`<span class="x-plan-dot" data-tone="danger"></span>blocked`);
-    expect(html).toContain(`<span class="x-mark x-plan-chip x-kanban-tag" data-id="sprint-tag-search"><span class="x-mark-shape x-plan-chip-label">search</span><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"></span></span></span>`);
+    expect(html).toContain(`<span class="x-mark x-plan-chip x-kanban-tag" data-id="sprint-tag-search"><span class="x-mark-shape x-plan-chip-label">search</span><span class="x-plan-lane" aria-hidden="true"></span></span>`);
     expect(elements["sprint-password-reset"].related).toEqual(["sprint-doing"]);
     expect(elements["sprint-password-reset"].value).toBe("blocked");
     expect(html).toMatch(/data-id="sprint-password-reset"[^>]*data-blocked="true" data-nav="2,1"/);
@@ -155,8 +155,8 @@ describe("kanban", () => {
     ]);
     expect(html).toMatch(/class="x-note-marker x-plan-note" data-note="2" data-for="sprint-board-password-reset-by-sms"/);
     // markers get a lane inside the mark: after a head's count, and floated into a card's first line ahead of its title
-    expect(html).toMatch(/data-id="sprint-board-review"[^>]*><span class="x-mark-shape x-plan-head-label">Review<\/span><span class="x-kanban-facts">.*?<span class="x-plan-count">4 \/ 3<\/span><\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="1"/);
-    expect(html).toMatch(/data-id="sprint-board-password-reset-by-sms"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="2"[^>]*>2<\/span><\/span><span class="x-mark-shape x-card-label">Password reset by SMS</);
+    expect(html).toMatch(/data-id="sprint-board-review"[^>]*><span class="x-mark-shape x-plan-head-label">Review<\/span><span class="x-kanban-facts">.*?<span class="x-plan-count">4 \/ 3<\/span><\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="1"/);
+    expect(html).toMatch(/data-id="sprint-board-password-reset-by-sms"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="2"[^>]*>2<\/span><\/span><span class="x-mark-shape x-card-label">Password reset by SMS</);
     // a tag repeats across cards, so only its first chip holds the pin slot
     expect(html.match(/data-id="sprint-board-tag-checkout"/g)!.length).toBe(4);
     expect(html.match(/data-id="sprint-board-tag-checkout"><span class="x-mark-shape x-plan-chip-label">checkout<\/span><span class="x-plan-lane"/g)!.length).toBe(1);
@@ -281,10 +281,10 @@ describe("journey", () => {
     expect(html).toContain('class="x-journey-zero"');
     // note 1 targets the focal cell first; note 2 targets a point, so it sits on that stage's head
     expect(html).toMatch(/data-id="switch-plan-doing-set-up"[^>]*>[^]*?data-note="1"/);
-    expect(html).toMatch(/data-id="switch-plan-first-bill"[^>]*><span class="x-mark-shape x-plan-head-label">First bill<\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="2"/);
-    expect(html).toMatch(/data-id="switch-plan-doing-set-up"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="1"[^>]*>1<\/span><\/span><span class="x-mark-shape x-card-label">/);
+    expect(html).toMatch(/data-id="switch-plan-first-bill"[^>]*><span class="x-mark-shape x-plan-head-label">First bill<\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="2"/);
+    expect(html).toMatch(/data-id="switch-plan-doing-set-up"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="1"[^>]*>1<\/span><\/span><span class="x-mark-shape x-card-label">/);
     // a row label keeps its lane on the label's line, above the sub line
-    expect(html).toMatch(/data-id="switch-plan-sentiment"[^>]*><span class="x-plan-rowhead-line"><span class="x-mark-shape x-plan-rowhead-label">Sentiment<\/span><span class="x-plan-lane"[^>]*><span class="x-plan-pin"><\/span><\/span><\/span><span class="x-plan-rowhead-sub">/);
+    expect(html).toMatch(/data-id="switch-plan-sentiment"[^>]*><span class="x-plan-rowhead-line"><span class="x-mark-shape x-plan-rowhead-label">Sentiment<\/span><span class="x-plan-lane"[^>]*><\/span><\/span><span class="x-plan-rowhead-sub">/);
     expect(journey.table!(build(journey, trip).block)).toEqual({
       head: ["Stage", "Doing", "Thinking", "Sentiment", "Pains"],
       rows: [["Discover", "Sees an ad", "Is it cheaper?", "+1", ""], ["Compare", "Reads reviews", "", "0", ""], ["Sign up", "Fills the form", "Hope this is quick", "−2", "Form times out"]],
@@ -388,8 +388,8 @@ describe("storymap", () => {
     expect(warnings).toEqual([]);
     expect(html).toContain('data-cols="8"');
     expect(elements["grocery-map-mvp"].value).toBe("8 stories · covers 8 of 8 steps");
-    expect(html).toMatch(/data-id="grocery-map-mvp"[^>]*><span class="x-plan-rowhead-line"><span class="x-mark-shape x-plan-rowhead-label">MVP<\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="1"/);
-    expect(html).toMatch(/data-id="grocery-map-same-day-slots"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"><\/span><span class="x-note-marker x-plan-note" data-note="2"[^>]*>2<\/span><\/span><span class="x-mark-shape x-card-label">Same-day slots</);
+    expect(html).toMatch(/data-id="grocery-map-mvp"[^>]*><span class="x-plan-rowhead-line"><span class="x-mark-shape x-plan-rowhead-label">MVP<\/span><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="1"/);
+    expect(html).toMatch(/data-id="grocery-map-same-day-slots"[^>]*><span class="x-plan-line"><span class="x-plan-lane" aria-hidden="true"><span class="x-note-marker x-plan-note" data-note="2"[^>]*>2<\/span><\/span><span class="x-mark-shape x-card-label">Same-day slots</);
     const wide = { id: "wide", activities: [{ label: "All", steps: Array.from({ length: 9 }, (_, i) => `Step ${i}`) }], releases: [{ label: "One", stories: { "Step 0": ["A"] } }, { label: "Two" }] };
     const more: Diagnostic[] = [];
     build(storymap, wide, more);
@@ -451,12 +451,12 @@ describe("plans-boards.css", () => {
     expect(text).not.toContain("overflow-wrap: anywhere; }");
   });
 
-  test("markers sit in a lane, never on a border; the pin shares it; related chips step up to line-strong", async () => {
+  test("markers sit in a lane, never on a border; related chips step up to line-strong", async () => {
     const text = await css;
-    const note = text.match(/\.x-plan-note,\s*\.x-plan-pin \{[^}]*\}/)![0];
+    const note = text.match(/\.x-plan-note \{[^}]*\}/)![0];
     expect(note).not.toMatch(/position: absolute|top:|left:/);
     expect(text).toContain(".x-plan-card > .x-plan-line > .x-plan-lane { float: right;");
-    expect(text).toMatch(/\.x-stage\.is-dock-below [^{]*> \.x-plan-pin \{ display: grid; place-items: center; \}/);
+    expect(text).not.toContain("x-plan-pin");
     expect(text).not.toContain('content: "1"');
     expect(text).not.toContain("x-leader-num");
     expect(text).toContain(".x-plan-chip.x-mark.is-related { border-color: var(--x-line-strong); color: var(--x-text); }");

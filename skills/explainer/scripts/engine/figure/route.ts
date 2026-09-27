@@ -1,4 +1,4 @@
-import type { FigureBlock, NodeSpec, Theme } from "../types.ts";
+import type { FigureBlock, GroupSpec, NodeSpec, Theme } from "../types.ts";
 import { cellRect, figureSize, groupRect, inflate, overlaps, segmentBox, type Rect } from "./grid.ts";
 
 export type Point = [number, number];
@@ -22,6 +22,8 @@ const BORDER_CLEAR = 6;
 /** Route cost: a bend costs this much length, a crossing much more, the outer ring more still. */
 const BEND_COST = 24;
 const CROSS_COST = 160;
+/** A route through a zone neither of its ends sits in reads as if it belonged there: dearer than a crossing. */
+const ZONE_COST = 240;
 const OUTER_COST = OUTER * 2;
 const VERTICAL_FIRST: readonly string[] = ["tree", "layers", "states"];
 
@@ -151,7 +153,15 @@ export function routeEdges(fig: FigureBlock, theme: Theme, boxes?: Map<string, R
     return attach;
   };
 
-  // Route choice: the cheapest clear plan, where length, bends, crossings with other routes and the outer ring all cost.
+  // Zones a connector may pass through: the ones either end sits in. Any other zone it enters costs ZONE_COST.
+  const zoneRects = fig.groups.map((g) => ({ g, r: inflate(groupRect(g.from, g.to, theme), -BORDER_CLEAR) }));
+  const within = (n: NodeSpec, g: GroupSpec) => n.at[0] >= g.from[0] && n.at[0] <= g.to[0] && n.at[1] >= g.from[1] && n.at[1] <= g.to[1];
+  const entered = (points: Point[], from: string, to: string) => zoneRects.filter(({ g, r }) =>
+    !within(nodes.get(from)!, g) && !within(nodes.get(to)!, g) && points.slice(1).some((b, i) => overlaps(segmentBox(points[i], b), r)));
+  const trespass = (points: Point[], from: string, to: string) => entered(points, from, to).length;
+
+  // Route choice: the cheapest clear plan, where length, bends, crossings with other routes, zones it has no end in
+  // and the outer ring all cost.
   const choose = (attach: Map<string, Point>, others: Map<string, Point[]>, crossCost: number) => {
     const chosen = new Map<string, { plan: Plan; clean: boolean; points: Point[] }>();
     for (const e of fig.edges) {
@@ -163,7 +173,7 @@ export function routeEdges(fig: FigureBlock, theme: Theme, boxes?: Map<string, R
       plans.forEach((plan, i) => {
         const points = plan.build(channelCenter);
         if (!isClear(points, reserved, [e.from, e.to])) return;
-        const score = length(points) + BEND_COST * (points.length - 2) + crossCost * crossings(points, drawn) + (plan.outer ? OUTER_COST : 0) + i * 1e-3;
+        const score = length(points) + BEND_COST * (points.length - 2) + crossCost * crossings(points, drawn) + ZONE_COST * trespass(points, e.from, e.to) + (plan.outer ? OUTER_COST : 0) + i * 1e-3;
         if (!best || score < best.score) best = { plan, points, score };
       });
       const pick: { plan: Plan; points: Point[] } = best ?? { plan: plans[0], points: plans[0].build(channelCenter) };
@@ -248,6 +258,9 @@ export function routeEdges(fig: FigureBlock, theme: Theme, boxes?: Map<string, R
         .sort((a, b) => length(a) + BEND_COST * a.length - (length(b) + BEND_COST * b.length))[0];
       if (retry) points = retry;
       else warn(e.id, `Connector ${e.from} -> ${e.to} shares a crowded gutter and touches a node; spread the nodes apart.`);
+    }
+    for (const { g } of entered(points, e.from, e.to)) {
+      warn(e.id, `Connector ${e.from} -> ${e.to} runs through the "${g.label}" zone although neither end is in it, so it reads as part of that zone; move a node so the path goes around it.`);
     }
     const w = warns.get(e.id);
     return w ? { id: e.id, points, warn: w.join(" ") } : { id: e.id, points };

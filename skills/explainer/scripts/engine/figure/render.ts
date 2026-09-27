@@ -11,6 +11,8 @@ const LABEL_GAP = 8;
 /** A label keeps this far from every other connector and border; the second pass settles for LABEL_NEAR. */
 const LABEL_CLEAR = 8;
 const LABEL_NEAR = 3;
+/** Well past LABEL_GAP: another connector this far off is plainly not the one the label sits beside. */
+const LABEL_OWN = 28;
 const CORNER = 8;
 const HOP = 4;
 const HOP_MARGIN = CORNER + HOP + 2;
@@ -156,11 +158,16 @@ function draw(fig: FigureBlock & ReadingSpec, ctx: RenderContext): { html: strin
   fig.edges.forEach((e, i) => {
     const pts = routes[i].points;
     if (pts.length < 2 || !e.label) return;
-    const others = lines.filter((_, j) => j !== i).flat().concat(borders);
-    const placed = placeLabel(e.label, pts, theme, nodeBoxes, masks, others);
+    // The reply that runs back beside a call is read as a pair, one label on each outer side, so it never makes a
+    // label ambiguous; any other connector near the label does.
+    const pair = (j: number) => fig.edges[j].from === e.to && fig.edges[j].to === e.from;
+    const placed = placeLabel(e.label, pts, theme, nodeBoxes, masks, lines.filter((_, j) => j !== i).flat().concat(borders), lines.filter((_, j) => j !== i && !pair(j)).flat());
     if (!placed) {
       ctx.warn({ rule: "edge-label", severity: "warn", line: fig.line, message: `Connector label "${e.label}" on ${e.from} -> ${e.to} has no room; shorten it or move the nodes apart.` });
       return;
+    }
+    if (placed.shared) {
+      ctx.warn({ rule: "edge-label", severity: "warn", line: fig.line, message: `Connector label "${e.label}" on ${e.from} -> ${e.to} sits about as close to another connector as to its own, so a reader may pin it on the wrong line; move the nodes apart or drop the label.` });
     }
     if (placed.covers) {
       ctx.warn({ rule: "edge-label", severity: "warn", line: fig.line, message: `Connector label "${e.label}" on ${e.from} -> ${e.to} can only sit on top of another connector; move the nodes apart so both stay visible.` });
@@ -380,10 +387,10 @@ function hopsFor(edges: EdgeSpec[], routes: Point[][]): Map<number, Map<number, 
 
 /**
  * Spots beside the connector's own runs: centred first, then slid toward either end. The first pass keeps
- * LABEL_CLEAR from every other connector and border, the second LABEL_NEAR; only then does a mask sit on a line
+ * LABEL_OWN from every other connector and border, the second LABEL_CLEAR, the third LABEL_NEAR; only then does a mask sit on a line
  * (`covers`), and the caller warns.
  */
-function placeLabel(text: string, pts: Point[], theme: Theme, nodes: Rect[], masks: Rect[], lines: Rect[]): { box: Rect; covers: boolean } | null {
+function placeLabel(text: string, pts: Point[], theme: Theme, nodes: Rect[], masks: Rect[], lines: Rect[], connectors: Rect[] = lines): { box: Rect; covers: boolean; shared?: boolean } | null {
   // Sans at the edge-label size: the mask pads the label at rest and still covers it when it turns semibold on selection.
   const tw = textWidth(text, theme.type.edgeLabel, "sans");
   const w = Math.max(tw + 2 * MASK_PAD, boldWidth(text, theme.type.edgeLabel) + 2);
@@ -408,8 +415,15 @@ function placeLabel(text: string, pts: Point[], theme: Theme, nodes: Rect[], mas
   }
   const fits = (r: Rect) => !nodes.some((o) => overlaps(r, o)) && !masks.some((o) => overlaps(r, o));
   const clear = (d: number) => (r: Rect) => fits(r) && !lines.some((l) => overlaps(inflate(r, d), l));
-  const box = spots.find(clear(LABEL_CLEAR)) ?? spots.find(clear(LABEL_NEAR));
-  if (box) return { box, covers: false };
+  // First a spot no other line comes near (LABEL_OWN), so the label can only be read as its own line's; a label
+  // equally close to two lines names the wrong one half the time.
+  // Only connectors count here: a zone border is not something a label could be read as naming.
+  // Only runs parallel to the label's own count: a label beside a vertical line is not misread as naming a
+  // horizontal one that passes above it.
+  const upright = new Set(spots.slice(horizontal.length * SLIDE.length * 2));
+  const near = (r: Rect) => connectors.some((l) => (upright.has(r) ? l.w === 0 && l.h > 0 : l.h === 0 && l.w > 0) && overlaps(inflate(r, LABEL_OWN), l));
+  const box = spots.find((r) => clear(LABEL_CLEAR)(r) && !near(r)) ?? spots.find(clear(LABEL_CLEAR)) ?? spots.find((r) => clear(LABEL_NEAR)(r) && !near(r)) ?? spots.find(clear(LABEL_NEAR));
+  if (box) return { box, covers: false, shared: near(box) };
   const fallback = spots.find(fits);
   return fallback ? { box: fallback, covers: true } : null;
 }
@@ -423,10 +437,13 @@ export function legendSvg(used: LegendKinds, theme: Theme, left: number, right: 
   const diamond = (x: number, cy: number) => `<polygon class="x-legend-swatch" points="${num(x + 8)},${num(cy - 6)} ${num(x + 16)},${num(cy)} ${num(x + 8)},${num(cy + 6)} ${num(x)},${num(cy)}"/>`;
   const line = (x: number, cy: number) => `<line class="x-legend-line" x1="${num(x)}" y1="${num(cy)}" x2="${num(x + 16)}" y2="${num(cy)}"/>`;
   const items: { kind: string; label: string; mark: (x: number, cy: number) => string }[] = [
-    ...NODE_ORDER.filter((k) => used.nodeKinds.has(k)).map((k) => ({ kind: k, label: nodeWord(layout, k), mark: k === "decision" ? diamond : swatch })),
+    // A plain box needs no key unless the layout gives it a word of its own (a state, a phase), and one line style
+    // needs none either: a key earns its place by telling two looks apart.
+    ...NODE_ORDER.filter((k) => used.nodeKinds.has(k) && (k !== "service" || nodeWord(layout, k) !== NODE_WORDS.service)).map((k) => ({ kind: k, label: nodeWord(layout, k), mark: k === "decision" ? diamond : swatch })),
     ...(used.focal ? [{ kind: "focal", label: "focal", mark: swatch }] : []),
-    ...EDGE_ORDER.filter((k) => used.edgeKinds.has(k)).map((k) => ({ kind: k, label: edgeWord(layout, k), mark: line })),
+    ...(used.edgeKinds.size > 1 ? EDGE_ORDER.filter((k) => used.edgeKinds.has(k)).map((k) => ({ kind: k, label: edgeWord(layout, k), mark: line })) : []),
   ];
+  if (!items.length) return { svg: "", height: 0 };
   const parts = [`<line class="x-legend-rule" x1="${num(left)}" y1="${num(top)}" x2="${num(right)}" y2="${num(top)}"/>`];
   let x = left, row = 0;
   for (const it of items) {

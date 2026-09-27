@@ -193,7 +193,7 @@ export const blockModule: BlockModule<KanbanBlock> = {
     const tagId = new Map(block.tags.map((t) => [t.label, t.id]));
     const markers = noteMarks(block.notes, new Set([...block.columns.map((c) => c.id), ...block.cards.map((c) => c.id)]));
     // the marker lane: note markers and the docked card's pin; a head lists it after the count, a card floats it into its first line
-    const lane = (id: string) => `<span class="x-plan-lane" aria-hidden="true"><span class="x-plan-pin"></span>${markers.get(id) ?? ""}</span>`;
+    const lane = (id: string) => `<span class="x-plan-lane" aria-hidden="true">${markers.get(id) ?? ""}</span>`;
     // a tag is drawn as one chip per card; only its first chip holds the pin, so a selected tag shows one
     const pinned = new Set<string>();
     const chipLane = (id: string) => (pinned.has(id) ? "" : (pinned.add(id), lane(id)));

@@ -183,6 +183,9 @@ function freeSpans(blocked: [number, number][], lo: number, hi: number): [number
   return out;
 }
 
+/** How far a dependency's vertical run may leave the gap between its two bars to find a free column. */
+const DETOUR_MAX = 96;
+
 /** The free x nearest to [lo, hi] (the leftmost one inside it when there is one). */
 function pickX(free: [number, number][], lo: number, hi: number): { x: number; span: [number, number] } | undefined {
   const [tlo, thi] = lo <= hi ? [lo, hi] : [hi, lo];
@@ -589,8 +592,14 @@ export const blockModule: BlockModule<GanttBlock> = {
         const blocked = lanes.slice(Math.min(ia, ib) + 1, Math.max(ia, ib)).flatMap((l) => l.xs);
         const lo = xa + STUB, hi = xb - ENTRY;
         let pick = pickX(freeSpans(blocked, minX, maxX), lo, hi);
+        const off = (p: { x: number }) => Math.max(Math.min(lo, hi) - p.x, p.x - Math.max(lo, hi), 0);
         if (!pick) {
           blockedRoutes++;
+          pick = { x: lo <= hi ? lo : hi, span: [minX, maxX] };
+        } else if (off(pick) > DETOUR_MAX) {
+          // A free column far from both bars sends the arrow on a long trip that crosses the whole chart and bunches
+          // with every other detour there. Beyond DETOUR_MAX it runs straight down beside its own bars instead,
+          // over the bars between on a halo of canvas, which reads as passing over them rather than joining them.
           pick = { x: lo <= hi ? lo : hi, span: [minX, maxX] };
         }
         const clash = (vx: number) => verticals.some((v) => v.from !== p.id && v.to !== s.id && Math.abs(v.x - vx) < 3 &&
@@ -610,7 +619,7 @@ export const blockModule: BlockModule<GanttBlock> = {
         }
         const d = orthoPath(pts), hot = tight(p, s);
         (hot ? crit : plain).push(`<g class="x-edge x-gantt-edge${hot ? " x-gantt-crit" : ""}" data-id="${esc(edgeId(p.id, s.id))}" data-from="${esc(p.id)}" data-to="${esc(s.id)}" data-kind="flow"${hot ? ` data-critical="true"` : ""}>` +
-          `<path class="x-edge-line" d="${d}" marker-end="url(#${esc(b.id)}-arrow)"/><path class="x-edge-hit" d="${d}"/></g>`);
+          `<path class="x-gantt-halo" d="${d}"/><path class="x-edge-line" d="${d}" marker-end="url(#${esc(b.id)}-arrow)"/><path class="x-edge-hit" d="${d}"/></g>`);
       }
     }
     if (blockedRoutes) {
@@ -740,7 +749,8 @@ export const blockModule: BlockModule<GanttBlock> = {
       width: WIDTH,
       height,
       defs: deps ? arrowDefs(b.id) : undefined,
-      body: axis + refs + groupMarks + plain.join("") + crit.join("") + taskMarks + today + legend + markers,
+      // connectors over the bars: one that runs past a bar shows passing over it on its halo, never hidden beneath
+      body: axis + refs + groupMarks + taskMarks + plain.join("") + crit.join("") + today + legend + markers,
     });
   },
 
@@ -806,7 +816,7 @@ export const blockModule: BlockModule<GanttBlock> = {
           { k: "Tasks", v: String(members.length) },
           { k: "Length", v: days(hi - lo) },
           { k: "Critical", v: onPath.length ? names(onPath) : "none" },
-          ...(done !== undefined ? [{ k: "Done", v: `${pct(done * 100)} of the tracked days`, raw: Math.round(done * 100) }] : []),
+          ...(done !== undefined ? [{ k: "Done", v: `${pct(done * 100)} of its planned days`, raw: Math.round(done * 100) }] : []),
         ],
         links: [{ rel: "On the critical path", ids: onPath }],
         say: `${g.label}, ${members.length} tasks, ${spanLabel(lo, hi, years)}`,

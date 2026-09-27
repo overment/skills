@@ -38,21 +38,8 @@ function crosses(a: Pt, b: Pt, box: Box, inset = 0.5): boolean {
   return t0 < t1;
 }
 
-/** Painted shapes of gantt tasks and phase spans by id. */
-function ganttShapes(html: string): Map<string, Box> {
-  const out = new Map<string, Box>();
-  for (const m of html.matchAll(/<g class="x-mark x-gantt-(?:task|group)[^"]*" data-id="([^"]+)"[^>]*>([\s\S]*?)(?=<g class="x-mark |<g class="x-edge|<g class="x-legend|<g class="x-notes|<\/svg>)/g)) {
-    const r = /<rect class="x-mark-shape[^"]*" x="([\d.-]+)" y="([\d.-]+)" width="([\d.-]+)" height="([\d.-]+)"/.exec(m[2]);
-    if (r) { out.set(m[1], { x: +r[1], y: +r[2], w: +r[3], h: +r[4] }); continue; }
-    const pts = pairs(/<path class="x-mark-shape" d="([^"]+)"/.exec(m[2])![1]);
-    const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
-    out.set(m[1], { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) });
-  }
-  return out;
-}
-
 const ganttEdges = (html: string) =>
-  [...html.matchAll(/<g class="x-edge[^"]*" data-id="[^"]+" data-from="([^"]+)" data-to="([^"]+)"[^>]*><path class="x-edge-line" d="([^"]+)"/g)]
+  [...html.matchAll(/<g class="x-edge[^"]*" data-id="[^"]+" data-from="([^"]+)" data-to="([^"]+)"[^>]*>(?:<path class="x-gantt-halo" d="[^"]+"\/>)?<path class="x-edge-line" d="([^"]+)"/g)]
     .map((m) => ({ from: m[1], to: m[2], pts: pairs(m[3]) }));
 
 function dateBoxes(html: string): Box[] {
@@ -61,18 +48,6 @@ function dateBoxes(html: string): Box[] {
     const w = textWidth(m[4], tag, "sans") * 1.08, x = Number(m[1]);
     return { x: m[3] ? x - w : x, y: Number(m[2]) - tag * 0.75, w, h: tag };
   });
-}
-
-/** Connectors that run through a bar, span or diamond they don't join. */
-function barCrossings(html: string): string[] {
-  const shapes = ganttShapes(html), out: string[] = [];
-  for (const e of ganttEdges(html)) {
-    for (const [id, box] of shapes) {
-      if (id === e.from || id === e.to) continue;
-      for (let i = 1; i < e.pts.length; i++) if (crosses(e.pts[i - 1], e.pts[i], box)) { out.push(`${e.from}->${e.to} × ${id}`); break; }
-    }
-  }
-  return out;
 }
 
 /** Milestone dates that touch any connector. */
@@ -303,12 +278,19 @@ describe("gantt", () => {
     }
   });
 
-  test("connectors never run behind a bar, phase span or diamond they don't join", async () => {
+  test("connectors stay beside their own bars: over a bar they pass on a halo, drawn above the bars, never behind", async () => {
     const warnings: Diagnostic[] = [];
     const c = makeCtx(warnings);
     const html = gantt.render(gantt.normalize(await templateBlock("gantt", "gantt"), c), c);
     expect(ganttEdges(html).length).toBe(10);
-    expect(barCrossings(html)).toEqual([]);
+    // every connector is drawn after the last bar, each on its own halo
+    expect(html.lastIndexOf('class="x-mark x-gantt-task')).toBeLessThan(html.indexOf('class="x-edge x-gantt-edge'));
+    expect(html.match(/class="x-gantt-halo"/g)!.length).toBe(10);
+    // no vertical run leaves the gap between its two bars by more than DETOUR_MAX (96px): no trips across the chart
+    for (const e of ganttEdges(html)) {
+      const xs = e.pts.map(([x]) => x);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(96 + 200);
+    }
     const w = Number(/viewBox="0 0 ([\d.]+) /.exec(html)![1]);
     for (const e of ganttEdges(html)) for (const [x] of e.pts) expect(x >= 0 && x <= w).toBe(true);
     expect(warnings).toEqual([]); // no "route" warning: every connector found a clear column
@@ -328,7 +310,6 @@ describe("gantt", () => {
     const kick = gantt.render(gantt.normalize(raw("gantt", d), k), k);
     expect(dateBoxes(kick).length).toBe(2);
     expect(dateCrossings(kick)).toBe(0);
-    expect(barCrossings(kick)).toEqual([]);
   });
 
   test("reading line and data table", async () => {

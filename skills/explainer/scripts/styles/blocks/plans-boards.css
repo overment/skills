@@ -82,14 +82,13 @@
 .x-plan-dot[data-tone="danger"], [data-tone="danger"] > .x-plan-dot { background: var(--x-danger); }
 .x-plan-blocked { display: inline-flex; align-items: center; gap: 5px; color: var(--x-danger-ink, var(--x-danger)); }
 
-/* the marker lane: a mark's numbered note markers (the reading panel's notes) and the docked card's ① pin share one
-   slot inside the mark, never on its border. On a card the lane floats right in the first line and the title wraps
+/* the marker lane: a mark's numbered note markers (the reading panel's notes) sit in one slot inside the mark,
+   never on its border. On a card the lane floats right in the first line and the title wraps
    around it; on a head, row label or chip its markers are flex items after the count or label. */
 .x-plan-line { display: block; min-width: 0; }
 .x-plan-lane { display: contents; }
 .x-plan-card > .x-plan-line > .x-plan-lane { float: right; display: flex; gap: 4px; margin-left: 8px; }
-.x-plan-note,
-.x-plan-pin {
+.x-plan-note {
   display: grid;
   flex: none;
   place-items: center;
@@ -108,16 +107,6 @@
 /* in a head, row label or chip the 20px ring centres on the line without growing it or moving the label baseline */
 :is(.x-plan-head, .x-plan-rowhead-line, .x-plan-chip) > .x-plan-lane > * { align-self: center; margin-block: -2px; }
 .x-plan-note { border: 1px solid var(--x-text); background: var(--x-surface); color: var(--x-text); }
-/* the pin is a filled ink dot like its .x-pop-num twin in the card, with no numeral, so it never reads as a note; it
-   shows on the selected mark only while the card docks under the board, and the client then skips the pin it would
-   draw beside the anchor. Until then the slot is empty and boxless, so it takes no room and adds no gap. */
-.x-plan-pin { display: contents; background: none; border: 0; }
-.x-stage.is-dock-below :is(.is-selected, .is-step-active) > .x-plan-lane > .x-plan-pin,
-.x-stage.is-dock-below :is(.is-selected, .is-step-active) > :is(.x-plan-line, .x-plan-rowhead-line) > .x-plan-lane > .x-plan-pin { display: grid; place-items: center; }
-.x-stage.is-dock-below :is(.is-selected, .is-step-active) > .x-plan-lane > .x-plan-pin::before,
-.x-stage.is-dock-below :is(.is-selected, .is-step-active) > :is(.x-plan-line, .x-plan-rowhead-line) > .x-plan-lane > .x-plan-pin::before {
-  content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--x-text);
-}
 html[data-view="bare"] .x-plan-note { display: none; }
 
 /* ---------- kanban: lanes share rows, so heads and first cards line up; lanes never narrower than 180px ---------- */

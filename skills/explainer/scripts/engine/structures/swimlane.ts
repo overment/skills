@@ -501,8 +501,9 @@ export const blockModule: BlockModule<SwimlaneBlock> = {
         id: l.id, label: l.label, figure: block.id, kind: "lane", about: l.about, members,
         facts: [
           { k: "Steps", v: String(members.length) },
-          into.length ? { k: "Handoffs in", v: String(into.length) } : null,
-          out.length ? { k: "Handoffs out", v: String(out.length) } : null,
+          // a count only adds something when one lane hands over more than once; otherwise the chips below say it
+          into.length > uniq(into.map((e) => laneOf(e.from))).length ? { k: "Handoffs in", v: String(into.length) } : null,
+          out.length > uniq(out.map((e) => laneOf(e.to))).length ? { k: "Handoffs out", v: String(out.length) } : null,
         ].filter((f): f is Fact => !!f),
         links: [
           { rel: "Steps", ids: members },

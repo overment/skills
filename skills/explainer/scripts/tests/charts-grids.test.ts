@@ -237,8 +237,8 @@ describe("treemap", () => {
 
   test("on-fill ink per palette slot and for the focal accent", () => {
     const { html } = contract(treemap, tree, "spend");
-    // slot 2 (Data, ochre) needs dark text in light mode and surface in dark
-    expect(html).toMatch(/data-id="spend-database" data-series="2"[^>]*data-ink="ts"/);
+    // slot 2 (Data, green) needs black ink in light mode, where neither text nor surface reaches AA, and surface in dark
+    expect(html).toMatch(/data-id="spend-database" data-series="2"[^>]*data-ink="ks"/);
     expect(html).toMatch(/data-id="spend-api" data-series="1" data-focal="true"[^>]*data-ink="ss"/);
   });
 
@@ -400,8 +400,8 @@ describe("on-fill ink", () => {
     expect([0, 1, 2, 3, 4, 5, 6].map((l) => rampInk(theme, l))).toEqual(
       [" data-ink=\"tt\"", " data-ink=\"tt\"", " data-ink=\"tt\"", " data-ink=\"tt\"", " data-ink=\"tw\"", " data-ink=\"ks\"", " data-ink=\"ss\""],
     );
-    expect(seriesInk(theme, 2)).toBe(' data-ink="ts"');
-    expect(seriesInk(theme, 3)).toBe(' data-ink="ks"');
+    expect(seriesInk(theme, 2)).toBe(' data-ink="ks"');
+    expect(seriesInk(theme, 4)).toBe(' data-ink="ts"');
     expect(accentInk(theme)).toBe(' data-ink="ss"');
   });
 });

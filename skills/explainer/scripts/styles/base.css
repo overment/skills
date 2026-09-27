@@ -692,17 +692,6 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
   font-size: var(--x-fs-tag);
   color: var(--x-text-dim);
 }
-/* the dock pin is a filled ink dot with no numeral: numbers belong to the author's notes, so a pin beside note ① or ②
-   never reads as another note. Its twin opens the card's eyebrow. */
-.x-pop-num {
-  display: none;
-  width: 12px;
-  height: 12px;
-  margin-right: 8px;
-  vertical-align: -1px;
-  background: var(--x-text);
-  border-radius: 50%;
-}
 .x-pop-crumb { display: flex; flex-wrap: wrap; align-items: baseline; font-size: var(--x-fs-caption); color: var(--x-text-dim); }
 .x-crumb-sep { margin: 0 8px; color: var(--x-text-faint); }
 .x-pop-title { padding-right: 24px; font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; }
@@ -721,9 +710,12 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
 .x-crumb:hover { text-decoration-color: var(--x-text); }
 .x-pop-value { font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; font-variant-numeric: tabular-nums; }
 .x-pop-facts { display: grid; gap: 4px; margin: 0; font-size: var(--x-fs-ui); font-variant-numeric: tabular-nums; }
-.x-pop-fact { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.x-pop-fact dt { flex: 1 1 40%; min-width: 0; color: var(--x-text-dim); }
-.x-pop-fact dd { flex: 0 1 auto; max-width: 78%; margin: 0; text-align: right; overflow-wrap: anywhere; }
+/* a fact is one line while key and value fit; a value too long for the rest of the line (a chip, a list) moves under
+   its key, right-aligned, instead of breaking mid-word or squeezing the key onto two lines */
+.x-pop-fact { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 12px; row-gap: 2px; }
+.x-pop-fact dt { flex: 1 0 auto; max-width: 100%; color: var(--x-text-dim); }
+.x-pop-fact dd { flex: 0 1 auto; max-width: 100%; margin: 0 0 0 auto; text-align: right; overflow-wrap: anywhere; }
+.x-pop-fact dd > .x-chip { white-space: nowrap; max-width: 100%; overflow-wrap: anywhere; }
 .x-pop-note { display: block; padding-bottom: 4px; }
 .x-pop-note dd { max-width: none; text-align: left; }
 .x-pop-about { color: var(--x-text); }
@@ -801,14 +793,12 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
 .x-leader-line { stroke: var(--x-line-strong); stroke-width: 1; }
 .x-leader-dot { fill: var(--x-line-strong); }
 .x-leader-caret { fill: var(--x-surface); stroke: var(--x-line-strong); stroke-width: 1; stroke-linejoin: round; }
-.x-leader-num { fill: var(--x-text); stroke: var(--x-bg); stroke-width: 2; }
 
 /* docked: in the gutter 16px right of the plot (the stage reserves it only when the plot would otherwise reach it;
    the plot never shrinks), in flow under the figure otherwise */
 .x-stage.is-dock-right, .x-pop-host.is-dock-right { padding-right: calc(var(--x-pop-w, 256px) + 16px); }
 .x-stage.is-dock-right.has-gutter, .x-pop-host.is-dock-right.has-gutter { padding-right: 0; }
 .is-dock-below > .x-pop { position: relative; left: auto; top: auto; width: auto; max-width: 544px; margin-top: 16px; }
-.is-dock-below > .x-pop .x-pop-num { display: inline-grid; }
 
 /* annotation layer: in the full view each note is also a callout on the graph, joined to its marker */
 .x-callouts { position: absolute; inset: 0; z-index: 8; pointer-events: none; }

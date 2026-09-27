@@ -83,16 +83,57 @@ export function cardData(model: DocModel, id: string): CardData | null {
   const title = ends ? `${ends[0].text} → ${ends[1].text}` : el.label;
   const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
   const parts = [el.value, isEdge ? el.label : el.sub].filter((s): s is string => !!s && norm(s) !== norm(title));
+  const value = [...new Set(parts)].join(" · ");
+  const head = eyebrow(el);
+  const crumb = (el.crumb ?? []).filter((c) => c !== id).map((c) => chip(model, c));
+  // the breadcrumb and an edge's two ends are already chips at the top; a relation to only those says it again
+  const shown = new Set([...crumb, ...(ends ?? [])].map((c) => c.id));
+  const said = sayOnce(value, head, el.facts ?? [], relationGroups(model, id), el.aboutHtml ?? el.about ?? "");
+  const facts = said.facts, groups = said.groups.filter((g) => !g.chips.every((c) => shown.has(c.id)));
   return {
     id,
-    eyebrow: eyebrow(el),
-    crumb: (el.crumb ?? []).filter((c) => c !== id).map((c) => chip(model, c)),
+    eyebrow: head,
+    crumb,
     title,
     ends,
-    value: [...new Set(parts)].join(" · "),
-    facts: (el.facts ?? []).slice(0, 5),
+    value,
+    facts: facts.slice(0, 5),
     aboutHtml: el.aboutHtml ?? "",
-    groups: relationGroups(model, id),
+    groups,
+  };
+}
+
+/**
+ * Each thing once. A reader who just joined scans the card top to bottom, and a fact that repeats the value, the
+ * kind in the eyebrow, the about sentence or the chips below it is a line they read twice. Chips win over a fact that lists the same
+ * parts, because a chip also takes them there; a group of parts the facts already link to, or that the value
+ * spells out, goes.
+ */
+export function sayOnce(value: string, head: string, facts: Fact[], groups: RelGroup[], about = ""): { facts: Fact[]; groups: RelGroup[] } {
+  const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+  const prose = norm(about.replace(/<[^>]*>/g, ""));
+  // a fact the about sentence already says in full ("exactly one users row") is read there, in context
+  const told = (f: Fact) => norm(f.v).length >= 12 && prose.includes(norm(f.v));
+  const words = norm(`${value} ${head.split(" · ")[0]}`);
+  // a chip is already on the card when a fact names that part outright ("Web client · 1 part below"); a fact that
+  // only links to it for another reason ("Ends · 1 d before Public launch") does not say what the group says
+  const named = (c: Chip) => facts.some((f) => f.ref === c.id && (norm(f.k) === norm(c.text) || norm(f.v) === norm(c.text)));
+  // the value spells a chip out only when it contains its exact text: "orders.user_id → users.id" names users.id, while
+  // a message "sends call 1" does not stand for the Call 1 column it links to
+  const spelled = (c: Chip) => !!value && value.includes(c.text);
+  const kept = groups.filter((g) => !g.chips.every(named) && !g.chips.every(spelled));
+  const rels = new Set(kept.map((g) => norm(g.rel)));
+  // a fact is "listed" when the chips say the same: all of several chips named in it, or the one chip word for word
+  // under words that share a stem with the fact's ("Critical" and "On the critical path"). One chip alone proves little:
+  // "Can no longer reach: Cart" and "checks out ← Cart" name the same part and say different things.
+  const stems = (t: string) => new Set(norm(t).split(/[^a-z0-9]+/).filter((w) => w.length > 3).map((w) => w.slice(0, 5)));
+  const akin = (a: string, b: string) => [...stems(a)].some((w) => stems(b).has(w));
+  const listed = (f: Fact) => kept.some((g) => g.chips.length > 1
+    ? g.chips.every((c) => norm(f.v).includes(norm(c.text)))
+    : norm(f.v) === norm(g.chips[0]?.text ?? "") && akin(f.k, g.rel));
+  return {
+    facts: facts.filter((f) => f.ref || !(norm(f.v) === norm(value) || norm(f.v) === norm(head.split(" · ")[0]) || rels.has(norm(f.k)) || listed(f) || told(f) || (norm(f.v).length > 2 && words === norm(f.v)))),
+    groups: kept,
   };
 }
 
@@ -151,7 +192,6 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text?
 const chipButton = (c: Chip, cls = "x-chip") => h("button", cls, c.text, { type: "button", "data-ref": c.id });
 
 export interface CardExtras {
-  pin?: boolean;                                 // docked under the figure: a filled dot, the twin of the one beside the anchor
   note?: { n: string; text: string };            // the reading-panel note on this element, listed first
   mentions?: { i: number; text: string }[];      // linked prose sentences, full view only
   back?: Chip;                                   // the previous selection made through a chip
@@ -161,10 +201,10 @@ export interface CardExtras {
   play?: string;                                 // scene id for "Play from here"
 }
 
-function head(box: HTMLElement, eyebrowText: string, pin?: boolean) {
-  if (!eyebrowText && !pin) return;
+// The ink ring already marks what the card is about, so the eyebrow carries no marker of its own.
+function head(box: HTMLElement, eyebrowText: string) {
+  if (!eyebrowText) return;
   const p = h("p", "x-pop-eyebrow");
-  if (pin) p.append(h("span", "x-pop-num", "", { "aria-hidden": "true" }));
   p.append(eyebrowText);
   box.append(p);
 }
@@ -181,8 +221,23 @@ function actions(box: HTMLElement, x: CardExtras) {
   box.append(row);
 }
 
+/**
+ * Relations. A relation to one part is one row, its words on the left and the part on the right, like a fact:
+ * "writes plan ←  Planner". Several parts under the same words keep a heading over their chips.
+ */
 function groups(box: HTMLElement, list: RelGroup[]) {
+  let rows: HTMLElement | null = null;
   for (const g of list) {
+    if (g.chips.length === 1 && g.rel.length <= 32) {
+      if (!rows) box.append((rows = h("dl", "x-pop-facts x-pop-rows")));
+      const div = h("div", "x-pop-fact");
+      const dd = h("dd");
+      dd.append(chipButton(g.chips[0]));
+      div.append(h("dt", "", g.rel), dd);
+      rows.append(div);
+      continue;
+    }
+    rows = null;
     const div = h("div", "x-pop-rel");
     div.append(h("p", "x-pop-k", g.rel));
     const chips = h("div", "x-chips");
@@ -215,7 +270,7 @@ function facts(box: HTMLElement, list: Fact[], note?: CardExtras["note"]) {
 /** The card body for one element. `id` prefixes the title id that aria-labelledby points at. */
 export function renderCard(d: CardData, popId: string, x: CardExtras = {}): HTMLElement {
   const box = h("div", "x-pop-body");
-  head(box, d.eyebrow, x.pin);
+  head(box, d.eyebrow);
   if (d.crumb.length) {
     const p = h("p", "x-pop-crumb");
     d.crumb.forEach((c) => p.append(chipButton(c, "x-crumb"), h("span", "x-crumb-sep", "›", { "aria-hidden": "true" })));
@@ -245,7 +300,7 @@ export function renderCard(d: CardData, popId: string, x: CardExtras = {}): HTML
 
 export function renderCompare(c: CompareData, popId: string, x: CardExtras = {}): HTMLElement {
   const box = h("div", "x-pop-body");
-  head(box, "Compare", x.pin);
+  head(box, "Compare");
   const title = h("h3", "x-pop-title", undefined, { id: `${popId}-t` });
   title.append(chipButton(c.a, "x-crumb"), h("span", "x-pop-arrow", " vs "), chipButton(c.b, "x-crumb"));
   box.append(title);
@@ -272,9 +327,9 @@ export function renderCompare(c: CompareData, popId: string, x: CardExtras = {})
 }
 
 /** A step note in the graph: step count and the note, no actions. */
-export function renderCallout(count: string, note: string, popId: string, pin?: boolean): HTMLElement {
+export function renderCallout(count: string, note: string, popId: string): HTMLElement {
   const box = h("div", "x-pop-body");
-  head(box, count ? `Step ${count}` : "Step", pin);
+  head(box, count ? `Step ${count}` : "Step");
   box.append(h("p", "x-pop-title x-pop-note-text", note, { id: `${popId}-t` }));
   return box;
 }

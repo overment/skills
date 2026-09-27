@@ -19,7 +19,7 @@ const NODE_KINDS: readonly NodeKind[] = ["actor", "service", "store", "external"
 const EDGE_KINDS: readonly EdgeKind[] = ["flow", "return", "async", "link"];
 const GROUP_KINDS = ["zone", "trust"] as const;
 /** The generic reach facts every node gets; layouts with a fact of their own (hub, tree, cycle…) drop them. */
-const REACH = new Set(["Downstream", "Upstream", "In a loop with", "Leads out to", "Comes in from"]);
+const REACH = new Set(["Leads on to", "Reached from", "In a loop with", "Leads out to", "Comes in from"]);
 const FIGURE_KEYS = ["id", "layout", "title", "grid", "nodes", "edges", "groups", "scenes", "legend", ...READING_KEYS];
 const SEQUENCE_KEYS = [...FIGURE_KEYS, "actors", "messages"];
 const NODE_KEYS = ["label", "sub", "at", "span", "kind", "focal", "about", "tags"];
@@ -314,7 +314,7 @@ type Card = { related?: string[]; facts?: (Fact | null)[]; links?: Link[]; conte
 
 /**
  * Relations in reading order, what comes in before what goes out, in the author's words: "confirms ←" Payment provider,
- * "charges card →" Payment provider. An unlabelled connector gets a bare arrow, never an invented verb.
+ * "charges card →" Payment provider. An unlabelled connector says only "From" or "To", never an invented verb.
  * Connectors with the same words share a row.
  */
 function verbLinks(outs: EdgeSpec[], ins: EdgeSpec[]): Link[] {
@@ -323,8 +323,8 @@ function verbLinks(outs: EdgeSpec[], ins: EdgeSpec[]): Link[] {
     const ids = rows.get(rel) ?? [];
     if (!ids.includes(id)) rows.set(rel, [...ids, id]);
   };
-  for (const e of ins) put(e.label ? `${e.label} ←` : "←", e.from);
-  for (const e of outs) put(e.label ? `${e.label} →` : "→", e.to);
+  for (const e of ins) put(e.label ? `${e.label} ←` : "From", e.from);
+  for (const e of outs) put(e.label ? `${e.label} →` : "To", e.to);
   return [...rows].map(([rel, ids]) => ({ rel, ids }));
 }
 
@@ -396,8 +396,8 @@ function layoutCards(block: Figure): Map<string, Card> {
         ]
         // a count that only repeats the relation chips below it says nothing: reach shows once it goes past them
         : [
-          far.size ? { k: "Downstream", v: plural(d.size, "part") } : null,
-          u.size > new Set(ins(n.id).map((e) => e.from)).size ? { k: "Upstream", v: plural(u.size, "part") } : null,
+          far.size ? { k: "Leads on to", v: plural(d.size, "part") } : null,
+          u.size > new Set(ins(n.id).map((e) => e.from)).size ? { k: "Reached from", v: plural(u.size, "part") } : null,
         ],
     });
   }
@@ -424,12 +424,12 @@ function layoutCards(block: Figure): Map<string, Card> {
       facts: [
         { k: "Parts inside", v: String(inner.size) },
         crossIn.length ? null : { k: "Reachable from outside", v: "nothing" },
-        { k: "Crossing edges", v: `${crossIn.length} in, ${crossOut.length} out` },
+        { k: "Connectors across its border", v: `${crossIn.length} in, ${crossOut.length} out` },
       ],
     });
     for (const id of inner) {
       const crossing = [...crossIn, ...crossOut].filter((e) => e.from === id || e.to === id).length;
-      card(id, { context: [g.id], facts: [crossing && block.layout === "zones" ? { k: `Crosses ${g.label}`, v: plural(crossing, "connector") } : null] });
+      card(id, { context: [g.id], facts: [crossing && block.layout === "zones" ? { k: `Crosses the ${g.label} border`, v: plural(crossing, "connector") } : null] });
     }
   }
   for (const n of block.nodes) {
@@ -496,8 +496,8 @@ function layoutCards(block: Figure): Map<string, Card> {
         pos: `level ${ancestors.length + 1} of ${depth}`,
         links: [{ rel: "Parent", ids: ancestors.slice(-1) }, { rel: kids.length === 1 ? "Child" : "Children", ids: kids }],
         facts: [
-          { k: "Descendants", v: String(subtree.size) },
-          ...(ancestors.length ? [] : kids.map((k) => ({ k: label(k), v: plural(down(k).size, "descendant"), ref: k }))),
+          { k: "Parts below it", v: String(subtree.size) },
+          ...(ancestors.length ? [] : kids.map((k) => ({ k: label(k), v: `${plural(down(k).size, "part")} below`, ref: k }))),
         ],
       });
       const c = cards.get(n.id)!;

@@ -5,7 +5,7 @@ description: >-
 license: MIT (bundled Geist fonts under OFL-1.1, see assets/fonts/OFL.txt)
 metadata:
   author: overment
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Explainer

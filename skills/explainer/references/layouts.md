@@ -10,7 +10,7 @@ What the router guarantees, and what it warns about instead of drawing badly:
 - Connectors sharing a side are ordered by where they head, so a route that turns up takes the upper slot. Two routes share a gutter lane unless their runs overlap.
 - A label sits beside its own line, at least 8px from every other connector and zone border. When the only free spot is on another line, `check` warns (`edge-label`): move the nodes apart rather than accept a hidden line.
 - A `decision` node is a diamond, and its connectors leave from its vertices: sideways only to a node on its own row, from the top or bottom vertex otherwise. It has room for a short label and no `sub`.
-- The layout also sets the card. Selecting a part shows its relations in the author's words, in reading order ("confirms ←", "charges card →"). Unlabelled connectors get a bare arrow, never an invented verb. The facts under the title are computed per layout; each section below lists them.
+- The layout also sets the card. Selecting a part shows its relations in the author's words, in reading order ("confirms ←", "charges card →"). Unlabelled connectors say only "From" or "To", never an invented verb. A relation to one part is one row; several parts under the same words share a heading. A fact the value, the kind or the chips already say is left out, so every line of the card is new. The facts under the title are computed per layout; each section below lists them.
 
 Every layout takes `notes:` (up to 4 `{on: id, text}`; `on` may be a node, a group or a connector id such as `orders->payments`) and `caveat:`. The notes are numbered on the figure and listed beside it in the expanded view.
 
@@ -26,7 +26,7 @@ row 2                       [Orders DB]
 
 - **Pattern:** the main path runs left to right on one row. Side effects (stores, background jobs) hang below the node that causes them, and external calls sit at the far right.
 - **Budget:** 4–5 nodes on the main row, 1–3 off it.
-- **Card:** what comes in and what goes out, how many parts are downstream and upstream. Parts two or more hops downstream stay undimmed, which answers "what breaks if this is down". A connector names its paired reverse connector.
+- **Card:** what comes in and what goes out, and how many parts it leads on to and is reached from ("Leads on to 6 parts"). Parts two or more hops downstream stay undimmed, which answers "what breaks if this is down". A connector names its paired reverse connector.
 - **Anti-patterns:**
   - Snaking the path back across rows.
   - Putting every store on the main row.
@@ -132,7 +132,7 @@ row 2   [Cart] [Search]   [Catalog] [Reports]
 
 - **Pattern:** the root is centred on row 0 (span it if it needs width), with children on the next row under their parent. Each parent drops one bus to its children: a line means "contains", so it has no arrowhead and isn't selectable. Levels get tags L1, L2… in the left margin.
 - **Budget:** at most 3 levels, and 4 children per parent.
-- **Card:** selecting a part lights its ancestors and its whole subtree, shows the ancestors as a breadcrumb, and counts descendants. The root lists each top-level branch with its size.
+- **Card:** selecting a part lights its ancestors and its whole subtree, shows the ancestors as a breadcrumb, and counts the parts below it. The root lists each top-level branch with its size.
 - **Anti-patterns:**
   - Cross-links between branches: that's a flow, so switch layouts.
   - Leaves that only restate their parent.

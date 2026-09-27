@@ -33,7 +33,7 @@ Dates: `YYYY-MM-DD`, `YYYY-MM` or `YYYY`. Ticks switch between days, weeks, mont
 
 - critical connectors in ink at rest, and a "Critical path" key that selects `<id>-critical` (link it from prose: `[critical path](#launch-critical)`);
 - a dashed slack box after every linked bar with float, labelled with its days as the card writes them ("6 d"), moved aside when today or a mark crosses the middle. It shows while the task is selected, and always in the full view, where note markers keep off it;
-- connectors that never pass behind a bar, phase span or diamond they don't join. They turn in the 8px gutters between rows and take the nearest clear column. If no clear column exists, `check` warns (`route`);
+- connectors drawn over the bars, each on a halo of canvas, so none ever hides behind a bar. They turn in the 8px gutters between rows and take the nearest clear column within 96px of the gap between their two bars; past that they run straight down beside their own bars and pass over the ones between on the halo, rather than cross the chart to a free column. If no column is clear even there, `check` warns (`route`);
 - milestone dates in the first spot that clears every connector (right of the diamond by default, with room kept for it);
 - bars without `progress`, in a chart where other tasks have it, as outlines, so unstarted work never looks finished;
 - a selectable today marker, `<id>-today`: late tasks, tasks in progress, what starts next.
