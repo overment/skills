@@ -1,0 +1,89 @@
+/* charts-lines: line, slope, bump, scatter */
+
+/* stroked marks: the painted shape is a line, never a fill */
+.x-chart .x-mark .x-series-line.x-mark-shape { fill: none; stroke: var(--x-series-1); stroke-width: var(--x-line-w, 2); }
+.x-chart .x-mark[data-series="1"] .x-series-line.x-mark-shape { stroke: var(--x-series-1); }
+.x-chart .x-mark[data-series="2"] .x-series-line.x-mark-shape { stroke: var(--x-series-2); }
+.x-chart .x-mark[data-series="3"] .x-series-line.x-mark-shape { stroke: var(--x-series-3); }
+.x-chart .x-mark[data-series="4"] .x-series-line.x-mark-shape { stroke: var(--x-series-4); }
+.x-chart .x-mark[data-series="5"] .x-series-line.x-mark-shape { stroke: var(--x-series-5); }
+.x-chart .x-mark[data-series="6"] .x-series-line.x-mark-shape { stroke: var(--x-series-6); }
+.x-chart .x-mark[data-series="7"] .x-series-line.x-mark-shape { stroke: var(--x-series-7); }
+.x-chart .x-mark[data-series="8"] .x-series-line.x-mark-shape { stroke: var(--x-series-8); }
+.x-chart .x-mark[data-tone="ok"] .x-series-line.x-mark-shape { stroke: var(--x-ok); }
+.x-chart .x-mark[data-tone="warn"] .x-series-line.x-mark-shape { stroke: var(--x-warn); }
+.x-chart .x-mark[data-tone="danger"] .x-series-line.x-mark-shape { stroke: var(--x-danger); }
+.x-chart .x-mark[data-tone="info"] .x-series-line.x-mark-shape { stroke: var(--x-info); }
+.x-chart .x-mark[data-muted="true"] .x-series-line.x-mark-shape { stroke: var(--x-line-strong); }
+.x-chart .x-mark[data-focal="true"] .x-series-line.x-mark-shape { stroke: var(--x-accent); stroke-width: calc(var(--x-line-w, 2) + .5); }
+.x-chart .x-mark:is(.is-hover, .is-selected, .is-step-active, :focus-visible) .x-series-line.x-mark-shape { stroke-width: calc(var(--x-line-w, 2) + 1.5); }
+
+/* selected or compared: the series' own hue, pulled toward the text ink until it reads at 3:1 on the canvas
+   (light palette slots sit near 2.8:1; muted gray at 1.8:1). The client clones this computed stroke. */
+.x-chart .x-mark[data-series] { --x-hue: var(--x-series-1); }
+.x-chart .x-mark[data-series="2"] { --x-hue: var(--x-series-2); }
+.x-chart .x-mark[data-series="3"] { --x-hue: var(--x-series-3); }
+.x-chart .x-mark[data-series="4"] { --x-hue: var(--x-series-4); }
+.x-chart .x-mark[data-series="5"] { --x-hue: var(--x-series-5); }
+.x-chart .x-mark[data-series="6"] { --x-hue: var(--x-series-6); }
+.x-chart .x-mark[data-series="7"] { --x-hue: var(--x-series-7); }
+.x-chart .x-mark[data-series="8"] { --x-hue: var(--x-series-8); }
+.x-chart .x-mark[data-tone="ok"] { --x-hue: var(--x-ok); }
+.x-chart .x-mark[data-tone="warn"] { --x-hue: var(--x-warn); }
+.x-chart .x-mark[data-tone="danger"] { --x-hue: var(--x-danger); }
+.x-chart .x-mark[data-tone="info"] { --x-hue: var(--x-info); }
+.x-chart .x-mark:is(.is-selected, .is-cmp):not([data-focal="true"]) .x-series-line.x-mark-shape {
+  stroke: color-mix(in oklab, var(--x-hue) 70%, var(--x-text));
+}
+
+/* wide invisible stroke so thin lines are easy to hover and click */
+.x-line-hit { fill: none; stroke: var(--x-line); stroke-opacity: 0; stroke-width: 14; pointer-events: stroke; }
+
+/* areas under a single series or stacked bands */
+.x-chart .x-series-area[data-muted="true"] { fill: var(--x-line-strong); }
+.x-chart .x-series-area[data-focal="true"] { fill: var(--x-accent); }
+.x-chart .x-series-area.x-stacked { fill-opacity: .28; }
+
+/* points and bubbles: a canvas ring keeps them apart from lines and each other */
+.x-point.x-mark-shape { stroke: var(--x-bg); stroke-width: 1.5; }
+.x-chart .x-bubble.x-mark-shape { fill-opacity: .72; }
+
+/* direct labels at line ends take their series' hue */
+.x-end-label { font-weight: 600; }
+.x-chart .x-mark[data-series="1"] .x-end-label { fill: var(--x-series-1); }
+.x-chart .x-mark[data-series="2"] .x-end-label { fill: var(--x-series-2); }
+.x-chart .x-mark[data-series="3"] .x-end-label { fill: var(--x-series-3); }
+.x-chart .x-mark[data-series="4"] .x-end-label { fill: var(--x-series-4); }
+.x-chart .x-mark[data-series="5"] .x-end-label { fill: var(--x-series-5); }
+.x-chart .x-mark[data-series="6"] .x-end-label { fill: var(--x-series-6); }
+.x-chart .x-mark[data-series="7"] .x-end-label { fill: var(--x-series-7); }
+.x-chart .x-mark[data-series="8"] .x-end-label { fill: var(--x-series-8); }
+.x-chart .x-mark[data-focal="true"] .x-end-label { fill: var(--x-accent); }
+.x-chart .x-mark[data-muted="true"] .x-mark-label:not(.x-on-fill) { fill: var(--x-text-dim); }
+
+/* legend entries follow the focal and muted state of their series */
+.x-legend-item[data-focal="true"] .x-legend-line { stroke: var(--x-accent); }
+.x-legend-item[data-focal="true"] .x-legend-swatch { fill: var(--x-accent); }
+.x-legend-item[data-muted="true"] .x-legend-line { stroke: var(--x-line-strong); }
+.x-legend-item[data-muted="true"] .x-legend-swatch { fill: var(--x-line-strong); }
+
+/* bump: thicker lines, rank numbers inside the dots */
+.x-chart[data-layout="bump"] { --x-line-w: 3; }
+.x-mark-label.x-bump-rank {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+/* a muted dot is pale gray: the surface knock-out would fall to ~1.9:1, so its digits take the text ink */
+.x-chart[data-layout="bump"] .x-mark[data-muted="true"] .x-bump-rank { fill: var(--x-text); }
+/* a dimmed dot fades toward the canvas, where the shared dimmed ink (--x-dim-text) falls near 2:1;
+   :root outranks the base dimmed-text rules so the rank keeps 3:1 */
+:root .x-svg .is-dimmed .x-bump-rank { fill: var(--x-text-dim); }
+
+/* scatter: quadrant guides, readable labels over marks, size key */
+.x-guide-line { stroke: var(--x-line-strong); stroke-width: 1; stroke-dasharray: 4 3; }
+.x-scatter-labels { pointer-events: none; }
+.x-scatter-label { paint-order: stroke; stroke: var(--x-bg); stroke-width: 3; stroke-linejoin: round; }
+.x-size-key-circle { fill: none; stroke: var(--x-text-faint); stroke-width: 1; }

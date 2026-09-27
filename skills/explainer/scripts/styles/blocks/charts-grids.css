@@ -1,0 +1,47 @@
+/* Grid charts: heatmap, treemap, marimekko. Extends the shared chart rules in base.css. */
+
+/* Row, column, group and stage heads are selectable: a clear hit area behind the label, filled when lit. */
+.x-mark.x-grid-head .x-mark-shape { fill: transparent; }
+.x-mark.x-grid-head:is(.is-selected, .is-related) .x-mark-shape { fill: var(--x-surface-2); }
+.x-mark.x-grid-head text { pointer-events: none; }
+
+[data-layout="heatmap"] .x-mark-label,
+[data-layout="treemap"] .x-mark-label,
+[data-layout="marimekko"] .x-mark-label { font-variant-numeric: tabular-nums; pointer-events: none; }
+
+/* On-fill label ink, shared by every grid and flow chart and by values inside stacked bars. The engine measures each fill against the theme and
+   writes data-ink="<light><dark>": t = --x-text, s = --x-surface, k = black, w = white (when neither token reaches 4.5:1).
+   A dimmed mark's fill fades toward the page, so its label takes base.css's dimmed text colour instead
+   (stated here too, because the ramp's own label rule in base.css outranks the generic dimmed-text rule). */
+.x-mark[data-ink^="t"] { --x-ink-l: var(--x-text); }
+.x-mark[data-ink^="s"] { --x-ink-l: var(--x-surface); }
+.x-mark[data-ink^="k"] { --x-ink-l: black; }
+.x-mark[data-ink^="w"] { --x-ink-l: white; }
+.x-mark[data-ink$="t"] { --x-ink-d: var(--x-text); }
+.x-mark[data-ink$="s"] { --x-ink-d: var(--x-surface); }
+.x-mark[data-ink$="k"] { --x-ink-d: black; }
+.x-mark[data-ink$="w"] { --x-ink-d: white; }
+.x-mark[data-ink]:not(.is-dimmed) :is(.x-mark-label, .x-value-label).x-on-fill { fill: light-dark(var(--x-ink-l), var(--x-ink-d)); }
+.x-mark.is-dimmed :is(.x-mark-label, .x-value-label).x-on-fill { fill: var(--x-dim-text, var(--x-text-faint)); }
+
+/* heatmap: empty cells (faded with the grid while something is lit) and the ramp legend (same steps as the data-level ramp) */
+.x-heat-empty { fill: none; stroke: var(--x-line); stroke-width: 1; stroke-dasharray: 2 3; }
+.x-chart[data-layout="heatmap"]:has(.is-dimmed) .x-heat-empty { stroke-opacity: var(--x-dim-stroke, .35); }
+.x-ramp-swatch { fill: color-mix(in oklab, var(--x-series-1) 8%, var(--x-surface)); }
+.x-ramp-swatch[data-level="1"] { fill: color-mix(in oklab, var(--x-series-1) 20%, var(--x-surface)); }
+.x-ramp-swatch[data-level="2"] { fill: color-mix(in oklab, var(--x-series-1) 34%, var(--x-surface)); }
+.x-ramp-swatch[data-level="3"] { fill: color-mix(in oklab, var(--x-series-1) 50%, var(--x-surface)); }
+.x-ramp-swatch[data-level="4"] { fill: color-mix(in oklab, var(--x-series-1) 66%, var(--x-surface)); }
+.x-ramp-swatch[data-level="5"] { fill: color-mix(in oklab, var(--x-series-1) 82%, var(--x-surface)); }
+.x-ramp-swatch[data-level="6"] { fill: var(--x-series-1); }
+.x-ramp-scale { fill: var(--x-text-dim); }
+
+/* treemap: the group frame is the group mark's shape (selection rings the whole group), strip label, value line */
+.x-tree-head .x-tree-group { stroke: var(--x-line); stroke-width: 1; }
+.x-tree-group-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 500;
+  fill: var(--x-text);
+}
+.x-tree-value { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); font-weight: 400; }

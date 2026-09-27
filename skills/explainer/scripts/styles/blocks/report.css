@@ -1,0 +1,238 @@
+/* Report genre: meta, events, change, metrics, checklist. Panels, dense type, tone blocks, tables and the
+   split layout. Selection, relation and dimming states come from base.css; nothing here restyles them.
+   Numbers (times, durations, values, counts) set in the sans with tabular figures; mono is only for code and
+   identifiers (inline `code`, a copyable chip). */
+
+/* ---------- panels ---------- */
+
+.x-report-panel {
+  padding: 18px 22px 20px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+}
+.x-report-title {
+  margin: 0 0 14px;
+  font-size: var(--x-fs-body);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: var(--x-text);
+  text-wrap: balance;
+}
+.x-report-sub {
+  margin: 18px 0 4px;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  color: var(--x-text-dim);
+}
+.x-report code {
+  padding: .05em .35em;
+  background: color-mix(in oklab, var(--x-text) 8%, transparent);
+  border-radius: calc(var(--x-radius) - 2px);
+  font-family: var(--x-font-mono);
+  font-size: max(var(--x-fs-caption), .9em);
+}
+
+/* Tone ink on tint rests at 4.5:1; the page's HTML dimming would take it under 3:1, so report panels
+   dim less (the contract lets a block set the token; the dimming rule itself stays in base.css). */
+.x-report { --x-dim-html: .8; }
+[data-theme="dark"] .x-report { --x-dim-html: .72; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) .x-report { --x-dim-html: .72; } }
+
+/* HTML marks in a report are blocks, rows and chips, not the matrix's inline symbols */
+.x-report .x-mark { display: block; min-width: 0; font-size: inherit; line-height: inherit; }
+.x-report tr.x-mark { display: table-row; }
+.x-report .x-mark:focus-visible { outline: 2px solid var(--x-accent); outline-offset: 2px; }
+
+/* room inside the stage's scroller for the selection outline, so its sides are not cut off */
+.x-report-panel .x-scroll { margin: -6px; padding: 6px; }
+
+/* page rhythm: panels sit closer than prose blocks */
+.x-block:has(> .x-report-panel) { margin: 20px 0; }
+.x-split:has(> .x-block > .x-report-panel) { gap: 20px; margin: 20px 0; align-items: stretch; }
+.x-split > .x-block > .x-report-panel { height: 100%; }
+@media (max-width: 1099px) {
+  .x-split:has(> .x-block > .x-report-panel) { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- meta ---------- */
+
+.x-block[data-block="meta"] { margin: -26px 0 24px; }
+.x-block[data-block="meta"]:first-child, html[data-view="bare"] .x-block[data-block="meta"] { margin-top: 0; }
+.x-report-meta { overflow: visible; }
+.x-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.x-meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.x-meta-chip,
+.x-report .x-mark.x-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  background: var(--x-surface-2);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-caption);
+  line-height: 20px;
+  color: var(--x-text);
+  white-space: nowrap;
+}
+.x-meta-chip:is([data-tone="ok"], [data-tone="warn"], [data-tone="danger"]) { border-color: transparent; }
+.x-meta-chip[data-tone="ok"] { background: var(--x-ok-tint); color: var(--x-ok-ink); }
+.x-meta-chip[data-tone="warn"] { background: var(--x-warn-tint); color: var(--x-warn-ink); }
+.x-meta-chip[data-tone="danger"] { background: var(--x-danger-tint); color: var(--x-danger-ink); }
+html[data-js] .x-meta-chip[data-copy] { cursor: copy; }
+/* a copyable chip holds an identifier (hash, branch, path): the one place mono belongs */
+.x-meta-chip[data-copy] { font-family: var(--x-font-mono); }
+.x-meta-copy:hover { border-color: var(--x-line-strong); }
+.x-meta-status { margin: 0; font-size: var(--x-fs-ui); line-height: 1.5; color: var(--x-text-dim); }
+.x-meta-sym { font-size: max(var(--x-fs-caption), .9em); }
+.x-meta-status .x-meta-sym { margin-right: 6px; }
+.x-meta-status[data-tone="ok"] .x-meta-sym { color: var(--x-ok); }
+.x-meta-status[data-tone="warn"] .x-meta-sym { color: var(--x-warn); }
+.x-meta-status[data-tone="danger"] .x-meta-sym { color: var(--x-danger); }
+html[data-view="bare"] .x-meta-status { display: none; }
+
+/* ---------- events ---------- */
+
+.x-rep-trace-wrap { margin: 0 -10px; }
+.x-rep-trace text { font-family: var(--x-font-sans); }
+.x-rep-label { font-size: var(--x-fs-caption); font-weight: 500; fill: var(--x-text); }
+.x-rep-sub { font-size: var(--x-fs-caption); fill: var(--x-text-dim); }
+.x-mark[data-tone="ok"] .x-rep-label { fill: var(--x-ok-ink); }
+.x-mark[data-tone="warn"] .x-rep-label { fill: var(--x-warn-ink); }
+.x-mark[data-tone="danger"] .x-rep-label { fill: var(--x-danger-ink); }
+.x-mark[data-focal="true"] .x-rep-label { fill: var(--x-accent); }
+.x-rep-leader { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-report .x-rep-dot { fill: var(--x-text-dim); }
+.x-report .x-rep-span-bar { fill: var(--x-text-faint); fill-opacity: .6; }
+.x-report .x-rep-bar { fill: var(--x-text-dim); fill-opacity: .75; }
+.x-report .x-rep-cluster-box { fill-opacity: 0; stroke: none; }
+.x-rep-trace .x-rep-dur,
+.x-rep-trace .x-rep-readout,
+.x-rep-trace .x-rep-break-label { font-family: var(--x-font-sans); font-size: var(--x-fs-node-sub); fill: var(--x-text-dim); font-variant-numeric: tabular-nums; }
+.x-rep-whisker { stroke: var(--x-line-strong); stroke-width: 1; stroke-dasharray: 2 2; }
+.x-rep-cluster-dot { fill: var(--x-text-dim); }
+.x-mark[data-tone="ok"] .x-rep-cluster-dot { fill: var(--x-ok); }
+.x-mark[data-tone="warn"] .x-rep-cluster-dot { fill: var(--x-warn); }
+.x-mark[data-tone="danger"] .x-rep-cluster-dot { fill: var(--x-danger); }
+.x-rep-break-mark { fill: none; stroke: var(--x-text-faint); stroke-width: 1.5; stroke-linecap: round; }
+.x-rep-ruler { stroke: var(--x-line); stroke-width: 1; }
+.x-rep-ruler-tick { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-rep-trace .x-rep-break-label { fill: var(--x-text-faint); }
+.x-rep-readout-rule { stroke: var(--x-text-dim); stroke-width: 1; stroke-dasharray: 2 3; }
+.x-rep-readout-bg { fill: var(--x-surface-2); stroke: var(--x-line-strong); stroke-width: 1; }
+.x-rep-trace .x-rep-readout { fill: var(--x-text); }
+/* expanded view: numbered explanation boxes on bands above and below the trace (bare view drops them) */
+.x-rep-annot-box { fill: var(--x-surface-2); stroke: var(--x-line); stroke-width: 1; }
+.x-rep-trace-wrap .x-rep-annot-text { font-family: var(--x-font-sans); font-size: var(--x-fs-caption); fill: var(--x-text); }
+html[data-js] .x-rep-annot-note { cursor: pointer; }
+html[data-view="bare"] .x-rep-annot { display: none; }
+
+/* A card on the trace opens next to the moment it explains: while it is open the stage grows a lane under
+   the plot, so the placer finds free room there (with a leader to the moment) instead of docking away. */
+.x-report-events > .x-stage:has(> .x-pop:not([hidden])):not(.is-dock-below) { padding-bottom: 384px; }
+
+.x-rep-fallback-list { margin: 8px 10px 0; padding-left: 1.5em; font-size: var(--x-fs-caption); color: var(--x-text-dim); }
+html[data-view="bare"] .x-notes.x-rep-fallback { display: inline; }
+
+/* ---------- change ---------- */
+
+.x-change-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.x-report .x-change-card { padding: 14px 16px 16px; font-size: var(--x-fs-ui); line-height: 1.5; }
+.x-change-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: var(--x-fs-body);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.x-change-letter::after { content: " ·"; }
+.x-change-state {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: calc(var(--x-radius) - 2px);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+}
+.x-change-tag {
+  margin: 12px 0 6px;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  color: var(--x-text-dim);
+}
+.x-change-head + .x-change-tag { margin-top: 0; }
+.x-change-block { padding: 8px 10px; border-radius: var(--x-radius); }
+:is(.x-change-block, .x-change-state)[data-tone="ok"] { background: var(--x-ok-tint); color: var(--x-ok-ink); }
+:is(.x-change-block, .x-change-state)[data-tone="warn"] { background: var(--x-warn-tint); color: var(--x-warn-ink); }
+:is(.x-change-block, .x-change-state)[data-tone="danger"] { background: var(--x-danger-tint); color: var(--x-danger-ink); }
+.x-change-block code { background: color-mix(in oklab, currentColor 12%, transparent); }
+
+/* ---------- metrics ---------- */
+
+.x-metrics {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--x-fs-ui);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.x-metrics :is(th, td) { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--x-line); }
+.x-metrics thead th { padding-top: 0; font-size: var(--x-fs-caption); font-weight: 500; color: var(--x-text-dim); white-space: nowrap; }
+.x-metrics thead th[title] { text-decoration: underline dotted var(--x-text-faint); text-underline-offset: 3px; cursor: help; }
+.x-metrics tbody th { font-weight: 400; color: var(--x-text); }
+.x-metrics [data-tone="ok"] { color: var(--x-ok-ink); }
+.x-metrics [data-tone="warn"] { color: var(--x-warn-ink); }
+.x-metrics [data-tone="danger"] { color: var(--x-danger-ink); }
+.x-metric-delta { color: var(--x-text-dim); }
+.x-metric-delta > span { font-size: var(--x-fs-caption); white-space: nowrap; }
+.x-metric-bars { display: block; margin: 3px 0 4px; }
+.x-metric-bar { fill: var(--x-text-faint); }
+.x-metric-bar[data-tone="ok"] { fill: var(--x-ok); }
+.x-metric-bar[data-tone="warn"] { fill: var(--x-warn); }
+.x-metric-bar[data-tone="danger"] { fill: var(--x-danger); }
+.x-proof th { width: 34%; }
+.x-proof-status { width: 1%; white-space: nowrap; font-size: var(--x-fs-caption); }
+/* the symbols differ in width; a fixed box keeps the status words aligned */
+.x-proof-status > span { display: inline-block; min-width: 1em; text-align: center; }
+.x-metrics tbody tr:last-child > * { border-bottom: 0; }
+
+/* ---------- checklist ---------- */
+
+.x-check-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: var(--x-fs-ui); line-height: 1.5; }
+.x-check-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; }
+.x-check-tick { position: relative; display: block; width: 22px; height: 22px; }
+.x-check-tick input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.x-check-num {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-variant-numeric: tabular-nums;
+  color: var(--x-text-dim);
+}
+.x-check-tick input:checked + .x-check-num,
+.x-check-tick[data-done] .x-check-num { background: var(--x-ok-tint); border-color: transparent; color: transparent; }
+.x-check-tick input:checked + .x-check-num::after { content: "✓"; position: absolute; color: var(--x-ok-ink); }
+.x-check-tick[data-done] .x-check-num { color: var(--x-ok-ink); }
+.x-check-tick input:focus-visible + .x-check-num { outline: 2px solid var(--x-accent); outline-offset: 2px; }
+.x-check-tick input:checked ~ * { text-decoration: none; }
+.x-check-open .x-check-num { border-color: transparent; }
+.x-check-step, .x-check-q { padding-top: 1px; }
+.x-check-owner { font-weight: 600; color: var(--x-text); }
+
+@media print {
+  .x-report-panel { break-inside: avoid; }
+  .x-check-tick input { display: none; }
+}

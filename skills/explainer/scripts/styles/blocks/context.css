@@ -1,0 +1,20 @@
+/* context: one panel per model call; a message keeps its row in every panel, so the list's growth reads as a staircase.
+   New since the previous call is an ink outline, sent again is a line outline with dim text. No role colours: the
+   role is the tag word. A call's reply is dashed (not in the list yet); the answer that ends the loop is a 2px ink box. */
+.x-context-call .x-context-panel { fill: var(--x-surface); stroke: var(--x-line); stroke-width: 1px; }
+.x-context-call[data-focal="true"] .x-context-panel { fill: var(--x-surface); stroke: var(--x-accent); stroke-width: 2px; }
+.x-context-head { font-weight: 600; }
+.x-context-foot { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); fill: var(--x-text-dim); font-variant-numeric: tabular-nums; }
+
+.x-context-msg .x-context-chip { fill: var(--x-bg); stroke: var(--x-line); stroke-width: 1px; }
+.x-context-msg.is-new .x-context-chip { stroke: var(--x-text); }
+.x-context-msg.is-carried .x-context-text { fill: var(--x-text-dim); }
+.x-context-msg[data-focal="true"] .x-context-chip { fill: var(--x-bg); stroke: var(--x-accent); stroke-width: 2px; }
+
+.x-context-role { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); font-weight: 600; fill: var(--x-text-dim); }
+.x-context-text { font-family: var(--x-font-sans); font-size: var(--x-fs-node-sub); }
+.x-context-reply { fill: none; stroke: var(--x-text-dim); stroke-width: 1px; stroke-dasharray: 4 3; }
+.x-context-reply.is-final { stroke: var(--x-text); stroke-width: 2px; stroke-dasharray: none; }
+.x-context-reply-text { fill: var(--x-text); }
+/* a selected call sends its carried messages as much as its new ones: they read at full ink inside its own panel */
+.x-context-col:has(> .x-context-call:is(.is-selected, .is-step-active)) .x-context-msg.is-carried .x-context-text { fill: var(--x-text); }

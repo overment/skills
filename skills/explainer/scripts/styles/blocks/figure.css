@@ -1,0 +1,43 @@
+/* ---------- grid figure and sequence: type visuals only (states live in base.css) ---------- */
+
+/* the part a card points at, and the border band that selects a zone: geometry only, never painted */
+.x-anchor { fill: none; stroke: none; pointer-events: none; }
+.x-group-hit { fill: none; stroke: transparent; stroke-width: 6; pointer-events: stroke; }
+html[data-js] .x-group-hit { cursor: pointer; }
+
+/* async connectors end in an open head, drawn in the line's own colour */
+.x-arrowhead-open {
+  fill: none;
+  stroke: var(--x-text-faint);
+  stroke: context-stroke;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* layers and tree: level tags in the left margin */
+.x-level-tag {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+
+/* tree connectors mean "contains": a bus, not a selectable arrow */
+.x-figure[data-layout="tree"] .x-edge-hit { pointer-events: none; }
+
+/* states: the start dot and the inner ring of a final state */
+.x-state-dot { fill: var(--x-text-dim); }
+.x-node-ring { fill: none; stroke: var(--x-line-strong); stroke-width: 1; pointer-events: none; }
+.x-node[data-focal="true"] > .x-node-ring { stroke: var(--x-accent); }
+
+/* sequence: activation bars on lifelines and message numbers, shown with the text */
+.x-activation { fill: var(--x-surface); stroke: var(--x-line-strong); stroke-width: 1; }
+.x-seq-num {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 500;
+  fill: var(--x-text-dim);
+  pointer-events: none;
+}
+html[data-view="bare"] .x-seq-num { display: none; }

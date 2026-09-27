@@ -1,0 +1,86 @@
+/* ---------- structures: swimlane, fishbone, wardley, nested ---------- */
+/* State rules (selected ring, related, dimmed) live in base.css; this file only sets each type's rest look
+   and its own label colours for the states, never the ring or the dimming. */
+
+/* swimlane: one frame, faint rules between lanes, lane headers as selectable chips */
+.x-swimlane-frame { fill: none; stroke: var(--x-line); stroke-width: 1; }
+.x-swimlane-rule { stroke: var(--x-line); stroke-width: 1; }
+.x-swimlane-band { fill: color-mix(in oklab, var(--x-text) 4%, transparent); }
+.x-swimlane-lane .x-mark-shape { fill: var(--x-surface); stroke: var(--x-line); stroke-width: 1; }
+.x-lane-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-node);
+  font-weight: 600;
+  fill: var(--x-text);
+}
+.x-swimlane-step .x-mark-shape { fill: var(--x-surface); stroke: var(--x-line-strong); stroke-width: 1; }
+/* branch labels rest on their own line; the halo keeps them clear of anything behind */
+[data-layout="swimlane"] .x-edge-text { paint-order: stroke; stroke: var(--x-bg); stroke-width: 4px; stroke-linejoin: round; }
+
+/* fishbone: spine and bones are structure; category chips and cause ticks are the marks */
+.x-fishbone-spine { stroke: var(--x-line-strong); stroke-width: 2; }
+.x-fishbone-bone { stroke: var(--x-line-strong); stroke-width: 1.5; }
+.x-fishbone-cat .x-mark-shape { fill: var(--x-surface); stroke: var(--x-line-strong); stroke-width: 1; }
+.x-fishbone-cat-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+.x-fishbone-cat:is(.is-hover, .is-selected, .is-related) .x-fishbone-cat-label { fill: var(--x-text); }
+.x-fishbone-cat:is(.is-selected, .is-related) .x-fishbone-bone { stroke: var(--x-text-dim); }
+.x-fishbone-cause .x-mark-shape { fill: none; stroke: var(--x-line-strong); stroke-width: 1.5; }
+.x-fishbone-cause .x-mark-label { paint-order: stroke; stroke: var(--x-bg); stroke-width: 3px; stroke-linejoin: round; }
+.x-fishbone-cause .x-hit { fill: transparent; stroke: none; }
+.x-fishbone-cause[data-focal="true"] .x-mark-shape { stroke: var(--x-accent); stroke-width: 2.5; }
+.x-fishbone-cause[data-focal="true"] .x-mark-label { fill: var(--x-accent); font-weight: 600; }
+.x-fishbone-effect { font-size: var(--x-fs-node); font-weight: 600; }
+
+/* wardley: open dots on a thin value chain; movement is a dashed trail to a ghost dot.
+   Labels carry a page-coloured halo, stage rules are dashed and stop short of labels. */
+.x-wardley-rule { stroke: var(--x-line); stroke-width: 1; stroke-dasharray: 4 4; }
+.x-wardley-band { fill: color-mix(in oklab, var(--x-text) 4%, transparent); }
+.x-wardley-stage .x-mark-shape { fill: transparent; stroke: none; }
+.x-wardley-stage-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  fill: var(--x-text-dim);
+}
+.x-wardley-stage:is(.is-hover, .is-selected) .x-wardley-stage-label { fill: var(--x-text); }
+:where([data-layout="wardley"]) .x-edge-line { stroke-width: 1; }
+.x-wardley-comp .x-mark-shape { fill: var(--x-surface); stroke: var(--x-text-dim); stroke-width: 1.5; }
+.x-wardley-comp .x-mark-label { paint-order: stroke; stroke: var(--x-bg); stroke-width: 3px; stroke-linejoin: round; }
+.x-wardley-comp[data-focal="true"] .x-mark-shape { fill: var(--x-accent); stroke: var(--x-accent); }
+.x-wardley-comp[data-focal="true"] .x-mark-label { font-weight: 600; }
+.x-wardley-comp[data-muted="true"] .x-mark-shape { fill: var(--x-surface); stroke: var(--x-line-strong); }
+.x-wardley-comp[data-muted="true"] .x-mark-label { fill: var(--x-text-dim); }
+.x-wardley-casing { fill: none; stroke: var(--x-bg); stroke-width: 5; }
+.x-wardley-move { fill: none; stroke: var(--x-text-dim); stroke-width: 1.25; stroke-dasharray: 4 3; }
+.x-wardley-ghost { fill: var(--x-bg); stroke: var(--x-text-dim); stroke-width: 1; stroke-dasharray: 2 2; }
+.x-wardley-comp[data-focal="true"] :is(.x-wardley-move, .x-wardley-ghost) { stroke: var(--x-accent); }
+.x-wardley-inertia { stroke: var(--x-text); stroke-width: 4; }
+.x-wardley-leader { stroke: var(--x-line-strong); stroke-width: 1; }
+/* a map with notes keeps a 256px callout lane beside its plot; on the left it is empty in the bare view,
+   so the plot slides back to the column edge there */
+html[data-view="bare"] [data-layout="wardley"][data-lane="left"] .x-svg { margin-left: -256px; }
+
+/* nested: each level a step further from the page; leaves are raised above their container in both modes */
+.x-nested-box .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 2.5%, var(--x-bg)); stroke: var(--x-line); stroke-width: 1; }
+.x-nested-box[data-depth="1"] .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 5%, var(--x-bg)); }
+.x-nested-box[data-depth="2"] .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 7.5%, var(--x-bg)); }
+.x-nested-box[data-depth="3"] .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 10%, var(--x-bg)); }
+.x-nested-box[data-focal="true"] .x-mark-shape { fill: color-mix(in oklab, var(--x-accent) 10%, var(--x-bg)); stroke: var(--x-accent); }
+.x-nested-box[data-muted="true"] .x-mark-shape { fill: var(--x-bg); stroke-dasharray: 3 3; }
+.x-nested-head {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+.x-nested-box:is(.is-hover, .is-selected) .x-nested-head { fill: var(--x-text); }
+.x-nested-box[data-focal="true"] .x-nested-head { fill: var(--x-accent); }
+.x-nested-leaf .x-mark-shape {
+  fill: light-dark(var(--x-surface), color-mix(in oklab, var(--x-text) 10%, var(--x-bg)));
+  stroke: var(--x-line-strong);
+  stroke-width: 1;
+}

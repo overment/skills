@@ -1,0 +1,995 @@
+/* Explainer base styles. Every visual value comes from theme variables (--x-*).
+   Type: one sans for everything a reader reads, mono only for code. Four sizes: 13 small (every diagram label,
+   tags, card, callouts, tables), 15 body, 19 h2, 26 h1; weights 400 and 600. Nothing renders below 13px.
+   Section tags are sentence case, 13/600, text-dim: no uppercase, no tracking. Spacing is on the 8px grid. */
+
+/* ---------- reset + page ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--x-bg);
+  color: var(--x-text);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button { font: inherit; color: inherit; }
+
+/* One column: prose keeps a 68ch measure, figures use the full width from the same left edge. */
+.x-page { box-sizing: content-box; max-width: 1280px; margin: 0 auto; padding: 48px 24px; }
+.x-page[data-width="narrow"] { max-width: 720px; }
+.x-page[data-width="full"] { max-width: none; }
+
+.x-content > :first-child { margin-top: 0; }
+.x-content > :last-child { margin-bottom: 0; }
+
+/* ---------- header + footer ---------- */
+
+.x-header { margin: 0 0 40px; padding-right: 200px; }
+@media (max-width: 640px) { .x-header { padding-right: 96px; } }
+
+.x-eyebrow {
+  margin: 0 0 8px;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--x-text-dim);
+}
+
+.x-title {
+  margin: 0;
+  font-family: var(--x-font-heading, var(--x-font-sans));
+  font-size: var(--x-fs-h1);
+  font-weight: var(--x-fw-heading, 600);
+  line-height: 32px;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.x-summary { margin: 8px 0 0; max-width: 64ch; color: var(--x-text-dim); text-wrap: pretty; }
+
+/* the two page switches: text on or off, light or dark */
+.x-controls { position: fixed; top: 16px; right: 16px; z-index: 15; display: flex; gap: 6px; }
+
+.x-toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  color: var(--x-text-dim);
+  cursor: pointer;
+}
+.x-toggle:hover { background: var(--x-surface-2); border-color: var(--x-line-strong); color: var(--x-text); }
+
+/* light: crescent moon, a disc with an offset bite masked out */
+.x-toggle::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  -webkit-mask: radial-gradient(circle at 78% 24%, transparent 0 6px, currentColor 6.5px);
+  mask: radial-gradient(circle at 78% 24%, transparent 0 6px, currentColor 6.5px);
+}
+
+/* dark: sun, a core dot inside a ring */
+[data-theme="dark"] .x-toggle::before {
+  background: radial-gradient(circle, currentColor 0 3.5px, transparent 4px 5.5px, currentColor 6px 7.5px, transparent 8px);
+  -webkit-mask: none;
+  mask: none;
+}
+
+/* bare view: diagrams and their interactions, nothing to read around them */
+html[data-view="bare"] :is(.x-header, .x-prose, .x-footer, .x-note, .x-glossary, .x-figure-title, .x-block-title, .x-steps-note) { display: none; }
+html[data-view="bare"] .x-block { margin: 24px 0; }
+
+.x-footer { margin-top: 56px; font-size: var(--x-fs-caption); color: var(--x-text-dim); }
+.x-footer a { color: inherit; text-underline-offset: 3px; }
+
+/* ---------- prose (zero specificity so components override) ---------- */
+
+:where(.x-prose > :first-child) { margin-top: 0; }
+:where(.x-prose > :last-child) { margin-bottom: 0; }
+
+:where(.x-prose h2) {
+  margin: 40px 0 8px;
+  font-size: var(--x-fs-h2);
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+:where(.x-prose h3) { margin: 32px 0 8px; font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; }
+:where(.x-prose h4) {
+  margin: 24px 0 8px;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--x-text-dim);
+}
+
+:where(.x-prose p, .x-prose ul, .x-prose ol, .x-prose blockquote) { max-width: 68ch; margin: 0 0 16px; text-wrap: pretty; }
+:where(.x-prose ul, .x-prose ol) { padding-left: 1.25em; }
+:where(.x-prose li) { margin: 4px 0; }
+:where(.x-prose li::marker) { color: var(--x-text-faint); }
+:where(.x-prose strong) { font-weight: 600; }
+
+/* One link style for every link in prose: external links, graph references (.x-ref) and glossary terms (.x-term).
+   Text colour, a faint 1px underline; ink on hover; a 2px ink underline while it points at the selection. */
+:where(.x-prose a, .x-ref, .x-term) {
+  color: inherit;
+  text-decoration: underline solid var(--x-text-faint);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+:where(.x-prose a, .x-ref, .x-term):is(:hover, :focus-visible, .is-hover) { text-decoration-color: var(--x-text); }
+
+:where(.x-prose code) {
+  padding: .1em .35em;
+  background: color-mix(in oklab, var(--x-text) 6%, var(--x-surface));
+  border-radius: var(--x-radius);
+  font-family: var(--x-font-mono);
+  font-size: max(var(--x-fs-caption), .88em);
+}
+:where(.x-prose pre) {
+  margin: 16px 0;
+  padding: 16px;
+  overflow-x: auto;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-family: var(--x-font-mono);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+}
+:where(.x-prose pre code) { padding: 0; background: none; font-size: inherit; }
+
+:where(.x-prose blockquote) {
+  margin: 16px 0;
+  padding: 16px;
+  background: color-mix(in oklab, var(--x-text) 4%, var(--x-surface));
+  border-radius: var(--x-radius);
+  color: var(--x-text-dim);
+}
+
+:where(.x-prose hr) { height: 1px; margin: 32px 0; border: 0; background: var(--x-line); }
+
+:where(.x-prose table) {
+  width: 100%;
+  margin: 16px 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  font-variant-numeric: tabular-nums;
+}
+:where(.x-prose th, .x-prose td) { padding: 8px 12px; text-align: left; vertical-align: top; }
+:where(.x-prose th) {
+  background: var(--x-surface-2);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--x-text-dim);
+}
+:where(.x-prose tbody tr:nth-child(even)) { background: color-mix(in oklab, var(--x-text) 3%, var(--x-surface)); }
+
+/* Rounded frames: corner cells follow the table radius so fills never poke out. */
+:where(.x-prose table, .x-matrix) > thead > tr:first-child > :first-child { border-top-left-radius: calc(var(--x-radius) - 1px); }
+:where(.x-prose table, .x-matrix) > thead > tr:first-child > :last-child { border-top-right-radius: calc(var(--x-radius) - 1px); }
+:where(.x-prose table, .x-matrix) > tbody > tr:last-child > :first-child { border-bottom-left-radius: calc(var(--x-radius) - 1px); }
+:where(.x-prose table, .x-matrix) > tbody > tr:last-child > :last-child { border-bottom-right-radius: calc(var(--x-radius) - 1px); }
+
+/* ---------- blocks + containers ---------- */
+
+.x-block { margin: 32px 0; }
+.x-block[data-block="matrix"] { overflow-x: auto; }
+
+.x-block-title, .x-figure-title {
+  margin: 0 0 8px;
+  padding: 0;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--x-text-dim);
+  text-align: left;
+}
+
+.x-split, .x-sidebar { display: grid; gap: 24px; align-items: start; margin: 32px 0; }
+.x-split { grid-template-columns: var(--cols, 1fr 1fr); }
+.x-sidebar { grid-template-columns: minmax(0, 1fr) 320px; }
+.x-stack { display: flex; flex-direction: column; gap: 16px; margin: 32px 0; }
+:is(.x-split, .x-sidebar, .x-stack) > * { min-width: 0; margin-block: 0; }
+:is(.x-split, .x-sidebar) > :is(.x-detail, [data-block="detail"]) { position: sticky; top: 24px; }
+
+@media (max-width: 800px) {
+  .x-split, .x-sidebar { grid-template-columns: minmax(0, 1fr); }
+  :is(.x-split, .x-sidebar) > :is(.x-detail, [data-block="detail"]) { position: static; }
+}
+
+/* ---------- figure ---------- */
+
+.x-figure { margin: 0; }
+/* The stage is the positioning box for the card, leader and overlays; only its scroller clips. */
+.x-figure:not(:has(.x-scroll)) { overflow-x: auto; }
+.x-stage { --x-pop-w: 256px; position: relative; }
+.x-scroll { overflow-x: auto; }
+
+/* Figures render 1:1 at the size the engine drew them (width attribute + viewBox), never scaled down or up,
+   so a 13px label is 13px on screen. A figure wider than the column scrolls inside its .x-scroll. */
+.x-svg {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+:where(.x-svg text) { font-family: var(--x-font-sans); font-variant-numeric: tabular-nums; }
+
+/* groups */
+.x-group-box {
+  fill: color-mix(in oklab, var(--x-text) 3%, var(--x-bg));
+  stroke: var(--x-line);
+  stroke-width: 1;
+  rx: var(--x-radius);
+  pointer-events: none;
+}
+.x-group[data-kind="trust"] .x-group-box {
+  fill: color-mix(in oklab, var(--x-accent) 4%, var(--x-bg));
+  stroke: var(--x-accent);
+  stroke-dasharray: 6 4;
+}
+.x-group-mask { fill: var(--x-bg); pointer-events: none; }
+.x-group-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+
+/* connectors */
+.x-edge-line {
+  fill: none;
+  stroke: var(--x-text-dim);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.x-edge[data-kind="return"] .x-edge-line { stroke-dasharray: 5 4; }
+.x-edge[data-kind="async"] .x-edge-line { stroke: var(--x-text-faint); stroke-dasharray: 2 4; }
+.x-edge[data-kind="link"] .x-edge-line { stroke: var(--x-link); }
+.x-edge-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; }
+
+/* arrowheads follow their line where context-stroke is supported */
+.x-arrowhead { fill: var(--x-text-dim); fill: context-stroke; }
+.x-arrowhead-link { fill: var(--x-link); }
+
+.x-edge-label { pointer-events: none; }
+.x-edge-mask { fill: var(--x-bg); }
+.x-edge-text { font-family: var(--x-font-sans); font-size: var(--x-fs-edge); fill: var(--x-text-dim); }
+
+/* nodes (legend swatches share the kind treatments) */
+.x-node-box, .x-legend-swatch {
+  fill: var(--x-surface);
+  stroke: var(--x-line-strong);
+  stroke-width: 1;
+}
+.x-node-box { rx: var(--x-radius); }
+.x-legend-swatch { rx: 2px; }
+.x-node[data-kind="actor"] > .x-node-box,
+.x-legend-item[data-kind="actor"] > .x-legend-swatch { fill: color-mix(in oklab, var(--x-text-dim) 8%, var(--x-surface)); }
+.x-node[data-kind="store"] > .x-node-box,
+.x-legend-item[data-kind="store"] > .x-legend-swatch { fill: color-mix(in oklab, var(--x-text) 5%, var(--x-surface)); }
+.x-node[data-kind="external"] > .x-node-box,
+.x-legend-item[data-kind="external"] > .x-legend-swatch { fill: var(--x-bg); stroke: var(--x-text-faint); }
+.x-node[data-kind="boundary"] > .x-node-box,
+.x-legend-item[data-kind="boundary"] > .x-legend-swatch {
+  fill: color-mix(in oklab, var(--x-danger) 4%, var(--x-surface));
+  stroke: var(--x-danger);
+  stroke-dasharray: 4 3;
+}
+.x-node[data-kind="optional"] > .x-node-box,
+.x-legend-item[data-kind="optional"] > .x-legend-swatch { stroke-dasharray: 4 3; }
+.x-node[data-focal="true"] > .x-node-box,
+.x-legend-item[data-kind="focal"] > .x-legend-swatch {
+  fill: color-mix(in oklab, var(--x-accent) 12%, var(--x-surface));
+  stroke: var(--x-accent);
+  stroke-width: 1.5;
+}
+
+.x-node-label { font-family: var(--x-font-sans); font-size: var(--x-fs-node); font-weight: 600; fill: var(--x-text); }
+.x-node-sub { font-family: var(--x-font-sans); font-size: var(--x-fs-node-sub); fill: var(--x-text-dim); }
+.x-node:focus { outline: none; }
+
+/* sequence */
+.x-lifeline { stroke: var(--x-line); stroke-width: 1; stroke-dasharray: 3 4; }
+
+/* legend */
+.x-legend-rule { stroke: var(--x-line); stroke-width: 1; }
+.x-legend-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  fill: var(--x-text-dim);
+}
+.x-legend-line { fill: none; stroke: var(--x-text-dim); stroke-width: 1.25; stroke-linecap: round; }
+.x-legend-item[data-kind="return"] > .x-legend-line { stroke-dasharray: 5 4; }
+.x-legend-item[data-kind="async"] > .x-legend-line { stroke: var(--x-text-faint); stroke-dasharray: 2 4; }
+.x-legend-item[data-kind="link"] > .x-legend-line { stroke: var(--x-link); }
+
+/* ---------- charts and boards (shared by every block beyond the grid figure) ---------- */
+
+.x-axis-line { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-grid-line { stroke: var(--x-line); stroke-width: 1; stroke-dasharray: 2 3; }
+.x-tick-label, .x-axis-label, .x-value-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  fill: var(--x-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.x-axis-label { font-weight: 600; }
+.x-mark-label { font-family: var(--x-font-sans); font-size: var(--x-fs-node-sub); font-weight: 400; fill: var(--x-text); }
+.x-mark-label.x-on-fill { fill: var(--x-surface); }
+
+/* series colors: one palette slot per data-series */
+.x-mark-shape { fill: var(--x-series-1); stroke: none; }
+.x-series-line { fill: none; stroke: var(--x-series-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.x-series-area { fill: var(--x-series-1); fill-opacity: .16; stroke: none; }
+[data-series="1"] :is(.x-mark-shape, .x-legend-swatch), [data-series="1"].x-series-area { fill: var(--x-series-1); }
+[data-series="2"] :is(.x-mark-shape, .x-legend-swatch), [data-series="2"].x-series-area { fill: var(--x-series-2); }
+[data-series="3"] :is(.x-mark-shape, .x-legend-swatch), [data-series="3"].x-series-area { fill: var(--x-series-3); }
+[data-series="4"] :is(.x-mark-shape, .x-legend-swatch), [data-series="4"].x-series-area { fill: var(--x-series-4); }
+[data-series="5"] :is(.x-mark-shape, .x-legend-swatch), [data-series="5"].x-series-area { fill: var(--x-series-5); }
+[data-series="6"] :is(.x-mark-shape, .x-legend-swatch), [data-series="6"].x-series-area { fill: var(--x-series-6); }
+[data-series="7"] :is(.x-mark-shape, .x-legend-swatch), [data-series="7"].x-series-area { fill: var(--x-series-7); }
+[data-series="8"] :is(.x-mark-shape, .x-legend-swatch), [data-series="8"].x-series-area { fill: var(--x-series-8); }
+[data-series="1"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="1"] { stroke: var(--x-series-1); }
+[data-series="2"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="2"] { stroke: var(--x-series-2); }
+[data-series="3"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="3"] { stroke: var(--x-series-3); }
+[data-series="4"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="4"] { stroke: var(--x-series-4); }
+[data-series="5"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="5"] { stroke: var(--x-series-5); }
+[data-series="6"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="6"] { stroke: var(--x-series-6); }
+[data-series="7"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="7"] { stroke: var(--x-series-7); }
+[data-series="8"] :is(.x-series-line, .x-legend-line), .x-series-line[data-series="8"] { stroke: var(--x-series-8); }
+.x-legend-line.x-dash { stroke-dasharray: 4 3; }
+
+/* muted marks carry context, not the story; the focal mark carries the accent */
+.x-mark[data-muted="true"] .x-mark-shape { fill: var(--x-line-strong); }
+.x-mark[data-focal="true"] .x-mark-shape { fill: var(--x-accent); }
+.x-series-line[data-focal="true"] { stroke: var(--x-accent); stroke-width: 2.5; }
+.x-series-line[data-muted="true"] { stroke: var(--x-line-strong); }
+
+/* sequential ramp for heat and density: data-level 0–6 */
+.x-mark[data-level] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 8%, var(--x-surface)); }
+.x-mark[data-level="1"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 20%, var(--x-surface)); }
+.x-mark[data-level="2"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 34%, var(--x-surface)); }
+.x-mark[data-level="3"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 50%, var(--x-surface)); }
+.x-mark[data-level="4"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 66%, var(--x-surface)); }
+.x-mark[data-level="5"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 82%, var(--x-surface)); }
+.x-mark[data-level="6"] .x-mark-shape { fill: var(--x-series-1); }
+.x-mark[data-level="4"] .x-mark-label, .x-mark[data-level="5"] .x-mark-label, .x-mark[data-level="6"] .x-mark-label { fill: var(--x-surface); }
+
+/* sentiment and status: meaning, never decoration */
+.x-mark[data-tone="ok"] .x-mark-shape { fill: var(--x-ok); }
+.x-mark[data-tone="warn"] .x-mark-shape { fill: var(--x-warn); }
+.x-mark[data-tone="danger"] .x-mark-shape { fill: var(--x-danger); }
+.x-mark[data-tone="info"] .x-mark-shape { fill: var(--x-info); }
+
+/* annotations: reference lines and bands (kit.refLine / refBand), numbered note markers (kit.notes) */
+.x-ref-rule { stroke: var(--x-text-dim); stroke-width: 1; stroke-dasharray: 4 3; }
+.x-ref-band-fill { fill: var(--x-text); fill-opacity: .05; }
+.x-ref-label { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); fill: var(--x-text-dim); }
+.x-note-ring { fill: var(--x-surface); stroke: var(--x-text); stroke-width: 1; }
+.x-note-num { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); font-weight: 600; fill: var(--x-text); font-variant-numeric: tabular-nums; }
+html[data-view="bare"] .x-notes { display: none; }
+
+/* hidden until the host mark has the state (kit.onSel / onRel / onHover) */
+.x-on-sel, .x-on-rel, .x-on-hover { display: none; }
+.is-selected .x-on-sel, .is-related .x-on-rel, .is-hover .x-on-hover { display: revert; }
+
+/* HTML boards (kanban, journey, story map, lanes): cards are marks too */
+.x-board:not(:has(.x-scroll)), .x-board .x-scroll { overflow-x: auto; }
+.x-card {
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  padding: 8px 12px;
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  color: var(--x-text);
+}
+.x-card[data-focal="true"] { border-color: var(--x-accent); background: color-mix(in oklab, var(--x-accent) 8%, var(--x-surface)); }
+.x-card-meta { display: block; margin-top: 4px; font-family: var(--x-font-sans); font-size: var(--x-fs-tag); color: var(--x-text-dim); font-variant-numeric: tabular-nums; }
+.x-board-head {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  color: var(--x-text-dim);
+}
+
+/* ---------- state tiers ----------
+   base.css owns every state rule. Selection is ink (a ring), focal is accent, hover is a dashed hint:
+   the three never share a channel. Block CSS may set the --x-dim-* / --x-sel-* properties and give a
+   per-type related look (a sankey band, a venn region); it never overrides the ring or the dimming. */
+
+html[data-js] :is(.x-mark, .x-legend-item[data-id]) { cursor: pointer; }
+html[data-js] .x-svg :is(.x-node, .x-edge-hit, .x-group-label) { cursor: pointer; }
+:is(.x-mark, .x-node, .x-edge, .x-group, .x-legend-item):focus { outline: none; }
+
+.x-node, .x-edge, .x-edge-label, .x-group, .x-lifeline, .x-mark, .x-legend-item,
+.x-compare-item, .x-matrix th, .x-matrix td, .x-ref, .x-sent, .x-scene, .x-btn, .x-toggle, .x-chip {
+  transition: opacity 140ms ease-out, color 140ms ease-out, background-color 140ms ease-out, border-color 140ms ease-out, filter 140ms ease-out;
+}
+.x-svg :is(rect, circle, ellipse, path, line, polyline, polygon, text) {
+  transition: opacity 140ms ease-out, fill-opacity 140ms ease-out, stroke-opacity 140ms ease-out, fill 140ms ease-out, stroke-width 140ms ease-out;
+}
+
+/* selected, compared, active step: the ring is drawn by the client in .x-sel-layer (last group of the svg):
+   the anchor inflated by --x-sel-gap, ink stroke over a bg underlay, so it reads on any fill, accent included */
+.x-sel-layer { pointer-events: none; }
+.x-sel-under { fill: none; stroke: var(--x-bg); stroke-width: calc(var(--x-sel-ring) + 3px); }
+.x-sel-ring { fill: none; stroke: var(--x-text); stroke-width: var(--x-sel-ring); }
+.x-sel-ring.x-ring-cmp { stroke-dasharray: 5 3; }
+.x-sel-ring.x-ring-hover { stroke: var(--x-text-dim); stroke-width: 1px; stroke-dasharray: 3 3; }
+.x-sel-under.x-ring-hover { stroke-width: 3px; }
+/* line, band and sector clones: bg halo, the shape in its own colour, a 1px ink outline for filled shapes */
+.x-sel-halo { fill: none; stroke: var(--x-bg); stroke-linecap: round; stroke-linejoin: round; }
+.x-sel-clone { stroke-linecap: round; stroke-linejoin: round; }
+.x-sel-outline { fill: none; stroke: var(--x-text); stroke-width: 1.5px; }
+.x-sel-layer :is(.x-sel-ring, .x-sel-outline, .x-sel-halo, .x-sel-under) { fill: none; }
+.x-sel-text { pointer-events: none; }
+.x-sel-outline.x-ring-cmp { stroke-dasharray: 5 3; stroke-width: var(--x-sel-ring); }
+.x-sel-outline.x-ring-hover { stroke: var(--x-text-dim); stroke-dasharray: 3 3; }
+.x-brush-band { fill: var(--x-text); fill-opacity: .08; stroke: var(--x-text-dim); stroke-width: 1px; stroke-dasharray: 3 3; }
+
+/* the selected mark's own label and value turn ink */
+:is(.is-selected, .is-cmp, .is-step-active) :is(.x-mark-label:not(.x-on-fill), .x-value-label:not(.x-on-fill), .x-node-label, .x-edge-text, .x-legend-label, .x-group-label) {
+  fill: var(--x-text);
+  font-weight: 600;
+}
+.x-node:is(.is-selected, .is-step-active):not([data-focal="true"]) > .x-node-box { fill: var(--x-surface-2); }
+
+/* HTML marks and cards: the same ink ring as an outline; the card fill is unchanged */
+:is(.x-mark, .x-card, .x-compare-item, [data-id]:not(.x-block, .x-figure, .x-legend-item, section, tr, th, td)):not(svg *).is-selected,
+:is(.x-mark, .x-card, .x-compare-item):not(svg *).is-step-active {
+  outline: var(--x-sel-ring) solid var(--x-text);
+  outline-offset: var(--x-sel-gap);
+}
+:is(.x-mark, .x-card, .x-compare-item, [data-id]:not(.x-block, .x-figure, .x-legend-item, section, tr, th, td)):not(svg *).is-cmp {
+  outline: var(--x-sel-ring) dashed var(--x-text);
+  outline-offset: var(--x-sel-gap);
+}
+:is(.x-mark, .x-card, .x-compare-item, [data-id]:not(.x-block, .x-figure, .x-legend-item, section, tr, th, td)):not(svg *).is-hover:not(.is-selected, .is-cmp) {
+  outline: 1px dashed var(--x-text-dim);
+  outline-offset: var(--x-sel-gap);
+}
+
+/* related: full strength, no ring, no dash; the outline steps up to text-dim at 1.5px, kinds keep their fill */
+.x-node:is(.is-related, .is-step-done):not([data-focal="true"]) > .x-node-box { stroke: var(--x-text-dim); stroke-width: 1.5; }
+.x-edge:is(.is-related, .is-step-done) .x-edge-line { stroke-width: 1.5; }
+.x-edge-label:is(.is-selected, .is-related, .is-step-active, .is-step-done) .x-edge-text { fill: var(--x-text); }
+.x-lifeline:is(.is-selected, .is-related) { stroke: var(--x-line-strong); }
+.x-legend-item:is(.is-selected, .is-related) .x-legend-label { fill: var(--x-text); }
+:is(.x-card, .x-compare-item):not(svg *).is-related:not([data-focal="true"]) { border-color: var(--x-text-dim); }
+:is(.x-grid-head, .x-plan-head, .x-plan-rowhead, .x-board-head):not(svg *).is-related { background: var(--x-surface-2); }
+
+/* context (is-context) keeps its rest look and is never dimmed: nothing to style */
+
+/* dimmed: shapes lose fill and stroke strength and saturation; text swaps to --x-dim-text (3:1 on bg)
+   instead of fading, so labels stay readable and an accent never turns muddy */
+.x-svg .is-dimmed { filter: saturate(var(--x-dim-sat)); }
+.x-svg .is-dimmed :is(rect, circle, ellipse, polygon, path, image):not(.x-edge-mask, .x-group-mask, .x-edge-hit, .x-line-hit, .x-hit) { opacity: var(--x-dim-fill); }
+.x-svg .is-dimmed :is(line, polyline, .x-edge-line, .x-series-line, path[fill="none"]) { opacity: var(--x-dim-stroke); }
+.x-svg .is-dimmed text, .x-svg text.is-dimmed { fill: var(--x-dim-text); }
+/* HTML items (cards, cells, compare items) keep their surface; text and glyphs swap to --x-dim-text, which
+   keeps 3:1 on bg, surface, surface-2 and the tone tints. Fading them with opacity would take text below 3:1. */
+:not(svg *).is-dimmed { filter: saturate(var(--x-dim-sat)); border-color: var(--x-line); }
+:root:root :not(svg *).is-dimmed, :root:root :not(svg *).is-dimmed :not(svg, svg *) { color: var(--x-dim-text); }
+
+/* focal-context: a dimmed focal stays the author's point (accent stroke, fill at --x-dim-focal, no
+   desaturation) but never outshines the selection. :root:root lifts it above every dimming rule and above
+   block CSS that styles focal marks. */
+:root:root .x-svg .is-dimmed:is([data-focal="true"], :has(> [data-focal="true"])) { filter: none; }
+:root:root .x-svg .is-dimmed[data-focal="true"] :is(.x-mark-shape, .x-node-box):not(.x-on-sel *, .x-on-rel *, .x-on-hover *),
+:root:root .x-svg .is-dimmed :is(.x-mark-shape, .x-series-line, .x-node-box)[data-focal="true"] {
+  opacity: 1;
+  fill-opacity: var(--x-dim-focal);
+  stroke: var(--x-accent);
+  stroke-opacity: 1;
+  stroke-width: 1.5;
+}
+:root:root .x-svg .is-dimmed[data-focal="true"] text { fill: var(--x-text-dim); }
+
+@media (prefers-contrast: more) {
+  .x-svg .is-dimmed :is(rect, circle, ellipse, polygon, path, image, line, polyline):not(.x-edge-mask, .x-group-mask, .x-edge-hit, .x-line-hit, .x-hit) { opacity: .55; }
+}
+
+/* hidden through the legend (hide=): gone from the plot, scales unchanged */
+.x-svg .is-hidden { visibility: hidden; }
+:not(svg *).is-hidden:not(.x-legend-item) { visibility: hidden; }
+.x-legend-item.is-off .x-legend-swatch, .x-legend-item.is-off .x-legend-line { opacity: .3; }
+.x-legend-item.is-off .x-legend-label { fill: var(--x-text-faint); text-decoration: line-through; }
+
+/* ---------- matrix ---------- */
+
+.x-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  background: var(--x-surface);
+  font-size: var(--x-fs-ui);
+  font-variant-numeric: tabular-nums;
+}
+.x-matrix > caption { caption-side: top; }
+.x-matrix th, .x-matrix td { padding: 8px 12px; }
+.x-matrix thead th {
+  background: var(--x-surface-2);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--x-text-dim);
+}
+.x-matrix thead th.x-matrix-corner, .x-matrix tbody th { text-align: left; }
+.x-matrix tbody th { font-weight: 500; color: var(--x-text); }
+.x-matrix tbody tr:nth-child(even) { background: color-mix(in oklab, var(--x-text) 3%, var(--x-surface)); }
+html[data-js] .x-matrix :is(th[data-ref], tr[data-ref] > th) { cursor: pointer; }
+
+.x-cell { text-align: center; color: var(--x-text); }
+.x-cell[data-value="partial"] { color: var(--x-text-dim); }
+.x-cell[data-value="no"] { color: var(--x-text-faint); }
+.x-matrix .x-mark { display: inline-block; min-width: 1em; font-size: var(--x-fs-body); line-height: 1; }
+
+.x-matrix :is(th, td).is-hover { background: var(--x-surface-2); }
+.x-matrix :is(th, td):is(.is-selected, .is-related, .is-cmp),
+.x-matrix tr:is(.is-selected, .is-related, .is-cmp) > * { background: var(--x-surface-2); color: var(--x-text); }
+.x-matrix thead th:is(.is-selected, .is-cmp) { outline: var(--x-sel-ring) solid var(--x-text); outline-offset: calc(-1 * var(--x-sel-ring)); }
+.x-matrix thead th.is-cmp { outline-style: dashed; }
+
+/* ---------- compare ---------- */
+
+.x-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.x-compare-item {
+  padding: 16px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+}
+.x-compare-item[data-focal="true"] { border-color: var(--x-accent); }
+html[data-js] .x-compare-item { cursor: pointer; }
+.x-compare-label { margin: 0 0 8px; font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; }
+.x-compare-item ul { margin: 0; padding-left: 1.1em; font-size: var(--x-fs-body); }
+.x-compare-item li + li { margin-top: 4px; }
+.x-compare-item li::marker { color: var(--x-text-faint); }
+
+/* ---------- steps ---------- */
+
+.x-steps { display: grid; gap: 16px; }
+.x-steps-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.x-steps-count {
+  min-width: 5ch;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-ui);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--x-text-dim);
+}
+.x-steps-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.x-steps-note { min-height: 20px; margin: 0; font-size: var(--x-fs-ui); line-height: 20px; color: var(--x-text-dim); }
+/* with the client, the step note is a callout in the graph */
+html[data-js] .x-steps-note { display: none; }
+.x-steps-keys { margin-left: auto; font-size: var(--x-fs-tag); color: var(--x-text-dim); }
+html:not([data-js]) .x-steps-keys { display: none; }
+
+.x-scene {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  color: var(--x-text-dim);
+}
+html[data-js] .x-scene { cursor: pointer; }
+html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var(--x-line-strong); color: var(--x-text); }
+.x-scene:is([aria-pressed="true"], [aria-current="step"], .is-active) { background: var(--x-surface-2); border-color: var(--x-accent); color: var(--x-text); }
+
+/* ---------- notes ---------- */
+
+.x-note {
+  --x-tone: var(--x-info);
+  padding: 16px;
+  background: color-mix(in oklab, var(--x-tone) 8%, var(--x-surface));
+  border: 1px solid color-mix(in oklab, var(--x-tone) 40%, transparent);
+  border-radius: var(--x-radius);
+}
+.x-note[data-tone="warn"] { --x-tone: var(--x-warn); }
+.x-note[data-tone="danger"] { --x-tone: var(--x-danger); }
+.x-note[data-tone="ok"] { --x-tone: var(--x-ok); }
+.x-note > :first-child { margin-top: 0; }
+.x-note > :last-child { margin-bottom: 0; }
+
+/* ---------- glossary + terms + refs ---------- */
+
+.x-glossary { display: grid; grid-template-columns: max-content 1fr; gap: 8px 24px; margin: 0; }
+.x-glossary dt { font-weight: 600; }
+.x-glossary dd { margin: 0; color: var(--x-text-dim); }
+
+.x-term { font-style: normal; cursor: help; }
+
+.x-tip {
+  position: fixed;
+  z-index: 20;
+  max-width: 280px;
+  padding: 8px 12px;
+  background: var(--x-surface-2);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  color: var(--x-text);
+  pointer-events: none;
+}
+
+/* a reference to the selection: the same underline, 2px ink (the rest style is the prose link above) */
+.x-ref:is(.is-selected, .is-cmp) { text-decoration-color: var(--x-text); text-decoration-thickness: 2px; }
+
+/* ---------- detail panel ---------- */
+
+.x-detail {
+  padding: 16px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+}
+.x-detail-empty { margin: 0; color: var(--x-text-dim); }
+
+/* ---------- the card: .x-pop inside the figure's stage ----------
+   256px (32 units) wide, so a 960px chart keeps its gutter in a 1232px column; never clipped and never scrolling: it has no max-height, the stage grows to hold it.
+   It docks 16px right of the plot when that gutter fits, floats beside the anchor only where it covers nothing,
+   and otherwise sits under the figure (client/place.ts). */
+
+.x-pop-host { position: relative; }
+.x-pop {
+  position: absolute;
+  z-index: 10;
+  width: 256px;
+  max-width: 100%;
+  padding: 16px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line-strong);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  color: var(--x-text);
+}
+.x-pop-body { display: grid; gap: 8px; }
+.x-pop-body > * { margin: 0; }
+.x-pop-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 24px;
+  font-size: var(--x-fs-tag);
+  color: var(--x-text-dim);
+}
+/* the dock pin is a filled ink dot with no numeral: numbers belong to the author's notes, so a pin beside note ① or ②
+   never reads as another note. Its twin opens the card's eyebrow. */
+.x-pop-num {
+  display: none;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  vertical-align: -1px;
+  background: var(--x-text);
+  border-radius: 50%;
+}
+.x-pop-crumb { display: flex; flex-wrap: wrap; align-items: baseline; font-size: var(--x-fs-caption); color: var(--x-text-dim); }
+.x-crumb-sep { margin: 0 8px; color: var(--x-text-faint); }
+.x-pop-title { padding-right: 24px; font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; }
+.x-pop-arrow { font-weight: 400; color: var(--x-text-dim); }
+.x-crumb {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline solid var(--x-text-faint);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.x-crumb:hover { text-decoration-color: var(--x-text); }
+.x-pop-value { font-size: var(--x-fs-body); font-weight: 600; line-height: 24px; font-variant-numeric: tabular-nums; }
+.x-pop-facts { display: grid; gap: 4px; margin: 0; font-size: var(--x-fs-ui); font-variant-numeric: tabular-nums; }
+.x-pop-fact { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.x-pop-fact dt { flex: 1 1 40%; min-width: 0; color: var(--x-text-dim); }
+.x-pop-fact dd { flex: 0 1 auto; max-width: 78%; margin: 0; text-align: right; overflow-wrap: anywhere; }
+.x-pop-note { display: block; padding-bottom: 4px; }
+.x-pop-note dd { max-width: none; text-align: left; }
+.x-pop-about { color: var(--x-text); }
+.x-pop-about :is(p, ul, ol) { margin: 0 0 8px; }
+.x-pop-about > :last-child { margin-bottom: 0; }
+.x-pop-k {
+  margin: 0 0 4px;
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  color: var(--x-text-dim);
+}
+.x-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.x-chip {
+  padding: 2px 8px;
+  background: var(--x-surface-2);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  text-align: left;
+  color: var(--x-text);
+  cursor: pointer;
+}
+.x-chip:hover, .x-chip.is-hover { border-color: var(--x-line-strong); }
+.x-pop-mention {
+  display: block;
+  width: 100%;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-caption);
+  text-align: left;
+  color: var(--x-text-dim);
+  cursor: pointer;
+}
+.x-pop-mention + .x-pop-mention { margin-top: 4px; }
+.x-pop-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 4px; }
+.x-pop-act {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: var(--x-fs-tag);
+  color: var(--x-text-dim);
+  cursor: pointer;
+}
+.x-pop-act:hover { color: var(--x-text); text-decoration: underline; text-underline-offset: 3px; }
+.x-pop-hint { font-size: var(--x-fs-caption); color: var(--x-text-dim); }
+.x-pop-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-body);
+  line-height: 1;
+  color: var(--x-text-dim);
+  cursor: pointer;
+}
+.x-pop-close:hover { background: var(--x-surface-2); border-color: var(--x-line); color: var(--x-text); }
+.x-pop-cmp { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--x-fs-caption); font-variant-numeric: tabular-nums; }
+.x-pop-cmp :is(th, td) { padding: 2px 4px 2px 0; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.x-pop-cmp :is(th, td):last-child { text-align: right; padding-right: 0; }
+.x-pop-cmp thead th { font-weight: 600; color: var(--x-text); }
+.x-pop-cmp .x-pop-cmp-k th { padding-top: 6px; font-weight: 400; text-align: left; color: var(--x-text-dim); }
+.x-pop[data-kind="callout"] { width: 240px; }
+.x-pop-note-text { font-size: var(--x-fs-ui); font-weight: 500; }
+
+/* leader from the card to the anchor, or a caret when they nearly touch */
+.x-leader { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 9; }
+.x-leader-line { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-leader-dot { fill: var(--x-line-strong); }
+.x-leader-caret { fill: var(--x-surface); stroke: var(--x-line-strong); stroke-width: 1; stroke-linejoin: round; }
+.x-leader-num { fill: var(--x-text); stroke: var(--x-bg); stroke-width: 2; }
+
+/* docked: in the gutter 16px right of the plot (the stage reserves it only when the plot would otherwise reach it;
+   the plot never shrinks), in flow under the figure otherwise */
+.x-stage.is-dock-right, .x-pop-host.is-dock-right { padding-right: calc(var(--x-pop-w, 256px) + 16px); }
+.x-stage.is-dock-right.has-gutter, .x-pop-host.is-dock-right.has-gutter { padding-right: 0; }
+.is-dock-below > .x-pop { position: relative; left: auto; top: auto; width: auto; max-width: 544px; margin-top: 16px; }
+.is-dock-below > .x-pop .x-pop-num { display: inline-grid; }
+
+/* annotation layer: in the full view each note is also a callout on the graph, joined to its marker */
+.x-callouts { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.x-callout-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.x-callout-line { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-callout {
+  position: absolute;
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 12px 8px 8px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-caption);
+  line-height: 20px;
+  color: var(--x-text);
+  pointer-events: auto;
+}
+html[data-js] .x-callout[data-refs] { cursor: pointer; }
+.x-callout-num {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--x-text);
+  border-radius: 50%;
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.x-callout:is(.is-hover, .is-linked) { border-color: var(--x-line-strong); background: var(--x-surface-2); }
+.x-callouts .is-covered { visibility: hidden; }
+html[data-view="bare"] .x-callouts { display: none; }
+
+/* hidden series */
+.x-hidden-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 0; font-size: var(--x-fs-caption); color: var(--x-text-dim); }
+
+/* announcements for screen readers */
+.x-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------- prose linked to the graph ---------- */
+
+.x-sent { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* a sentence about the selection is marked by its references' ink underline, not a tint; the one-off flash
+   when the card jumps to a sentence is the only background */
+.x-sent.is-flash { animation: x-flash 1.2s ease-out; }
+@keyframes x-flash { from { background-color: color-mix(in oklab, var(--x-text) 14%, transparent); } }
+
+/* ---------- expanded view: the reading panel beside or under the figure ---------- */
+
+.x-read { container-type: inline-size; }
+.x-read-grid { display: grid; gap: 16px; }
+.x-read-main { min-width: 0; }
+/* the reading panel sits under the figure in the page column; beside it only on full-width pages */
+@container (min-width: 1440px) {
+  .x-read-grid { grid-template-columns: minmax(0, 1fr) 280px; align-items: start; }
+  .x-reading { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow: auto; }
+}
+.x-reading { display: grid; gap: 16px; align-content: start; max-width: 68ch; font-size: var(--x-fs-body); line-height: 24px; color: var(--x-text); }
+.x-reading > * { margin: 0; }
+.x-reading-k {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--x-text-dim);
+}
+.x-reading-how { color: var(--x-text-dim); }
+.x-reading-notes { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.x-reading-note {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--x-radius);
+}
+html[data-js] .x-reading-note[data-refs] { cursor: pointer; }
+.x-reading-note:is(.is-hover, .is-linked) { background: var(--x-surface-2); border-color: var(--x-line); }
+.x-reading-note-num {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-text);
+  border-radius: 50%;
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.x-reading-caveat { color: var(--x-text-dim); }
+.x-data summary {
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  color: var(--x-text-dim);
+  cursor: pointer;
+}
+.x-data-table { width: 100%; margin: 8px 0; border-collapse: collapse; font-size: var(--x-fs-caption); line-height: 20px; font-variant-numeric: tabular-nums; }
+.x-data-table :is(th, td) { padding: 4px 8px; text-align: left; vertical-align: top; }
+.x-data-table thead th { font-weight: 500; color: var(--x-text-dim); }
+.x-data-table tbody tr:nth-child(even) { background: color-mix(in oklab, var(--x-text) 4%, transparent); }
+html:not([data-js]) .x-data .x-btn { display: none; }
+.x-note-marker { cursor: pointer; }
+.x-note-marker.is-hover .x-note-ring { fill: var(--x-surface-2); stroke-width: 1.5; }
+html[data-view="bare"] :is(.x-reading, .x-notes) { display: none; }
+
+/* ---------- controls ---------- */
+
+.x-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  line-height: 20px;
+  color: var(--x-text);
+  cursor: pointer;
+}
+.x-btn:hover { background: var(--x-surface-2); border-color: var(--x-line-strong); }
+.x-btn[aria-pressed="true"] { border-color: var(--x-accent); background: var(--x-surface-2); }
+.x-btn:disabled { opacity: .4; cursor: default; }
+
+:where(.x-widget) { display: block; min-width: 0; }
+:where(.x-widget :is(input, select, textarea)) {
+  padding: 4px 8px;
+  background: var(--x-surface);
+  border: 1px solid var(--x-line);
+  border-radius: var(--x-radius);
+  font: inherit;
+  font-size: var(--x-fs-ui);
+  color: var(--x-text);
+  accent-color: var(--x-accent);
+}
+
+.x-error {
+  margin: 32px 0;
+  padding: 16px;
+  background: color-mix(in oklab, var(--x-danger) 8%, var(--x-surface));
+  border: 1px solid color-mix(in oklab, var(--x-danger) 40%, transparent);
+  border-radius: var(--x-radius);
+  font-size: var(--x-fs-ui);
+  color: var(--x-text);
+}
+.x-error :is(pre, code) { font-family: var(--x-font-mono); white-space: pre-wrap; }
+
+:focus-visible { outline: 2px solid var(--x-accent); outline-offset: 2px; }
+.x-node:focus-visible { outline: none; }
+/* with the client, a focused mark shows the hover ring (dashed, ink-dim) instead of an accent outline */
+html[data-js] :is(.x-mark, .x-node, .x-edge, .x-group, .x-legend-item, .x-card):focus-visible { outline: none; }
+
+/* ---------- no JS, capture, reduced motion, print ---------- */
+
+html:not([data-js]) :is(.x-controls, .x-steps-bar, .x-detail:not([data-placement])) { display: none; }
+
+/* captures: no controls, no tooltip, no focus rings; the card, leader and step callout stay */
+html[data-capture] :is(.x-controls, .x-steps-bar, .x-tip) { display: none; }
+html[data-capture] :focus-visible { outline: none; }
+
+html[data-capture] *, html[data-capture] *::before, html[data-capture] *::after {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+@media print {
+  :is(.x-controls, .x-steps-bar, .x-detail:not([data-placement]), .x-pop-actions, .x-pop-close, .x-data .x-btn) { display: none !important; }
+  .x-page { max-width: none; padding: 0; }
+  .x-figure { overflow: visible; }
+  :is(.x-figure, .x-matrix, .x-compare-item, .x-note) { break-inside: avoid; }
+}

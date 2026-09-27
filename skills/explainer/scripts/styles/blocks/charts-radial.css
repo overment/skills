@@ -1,0 +1,52 @@
+/* Radial charts: radar, polar, venn, quadrant. Renderers emit geometry; color and states live here. */
+
+/* shared */
+.x-radar-ring, .x-polar-ring, .x-polar-base, .x-polar-mean { fill: none; }
+.x-radar-tick, .x-polar-tick, .x-radar-readout { paint-order: stroke; stroke: var(--x-bg); stroke-width: 3px; stroke-linejoin: round; }
+.x-legend-item[data-focal="true"] .x-legend-swatch { fill: var(--x-accent); }
+.x-legend-item[data-muted="true"] .x-legend-swatch { fill: var(--x-line-strong); }
+:is([data-layout="radar"], [data-layout="polar"], [data-layout="venn"], [data-layout="quadrant"]) :is(.x-anchor, .x-sel-rule, .x-delta-label, .x-radar-readout, .x-polar-tick) { pointer-events: none; }
+:is([data-layout="radar"], [data-layout="polar"], [data-layout="venn"], [data-layout="quadrant"]) .x-anchor { fill: none; stroke: none; }
+
+/* radar: every area is painted before any outline, so no fill washes over another series' line */
+.x-radar-spoke { stroke: var(--x-line); stroke-width: 1; }
+.x-radar-fill .x-radar-area { fill-opacity: .16; }
+.x-radar-fill:is(.is-hover, .is-selected, .is-step-active) .x-radar-area { stroke: none; fill-opacity: .26; }
+.x-radar-series[data-focal="true"] .x-series-line { stroke: var(--x-accent); stroke-width: 2.5; }
+.x-radar-series[data-muted="true"] .x-series-line { stroke: var(--x-line-strong); }
+.x-radar-dot { stroke: var(--x-bg); stroke-width: 1; }
+/* a selected non-focal series rings its dots in ink, never in accent */
+.x-mark.x-radar-series.is-selected:not([data-focal="true"]) .x-radar-dot { stroke: var(--x-text); stroke-width: 1.5; }
+.x-radar-readout { fill: var(--x-text); font-weight: 600; }
+/* the axis name is the hit target: an invisible box around it */
+.x-mark.x-radar-axis-mark .x-radar-axis-hit { fill: transparent; stroke: none; }
+.x-radar-axis-mark.is-selected .x-radar-axis { font-weight: 600; }
+
+/* polar: ring values on the spoke in the gap at the top; the mean ring shows while a sector is selected */
+.x-polar-spoke { stroke-dasharray: none; }
+.x-polar-mean { stroke: var(--x-text); }
+[data-layout="polar"] .x-svg:has(.x-polar-sector.is-selected) .x-polar-tick[data-near-mean] { visibility: hidden; }
+.x-polar-tick.x-delta-label { fill: var(--x-text); }
+
+/* venn: tinted circles; overlap regions stay clear until focal, related, hovered or selected */
+.x-venn-set .x-mark-shape { fill-opacity: .14; }
+.x-venn-outline { stroke-width: 1.5; }
+.x-venn-set[data-focal="true"] .x-venn-outline { stroke: var(--x-accent); }
+.x-venn-set[data-muted="true"] .x-venn-outline { stroke: var(--x-line-strong); }
+/* the selection ring marks a selected set; its outline keeps its weight */
+.x-mark.x-venn-set.is-selected .x-venn-outline { stroke-width: 1.5; }
+.x-venn-region .x-mark-shape { fill: var(--x-text); fill-opacity: 0; }
+.x-venn-region:is(.is-hover, .is-selected, .is-related, .is-step-active) .x-mark-shape { fill-opacity: .12; }
+/* focal is the one accent treatment: a light accent tint and a 1.5px accent outline, never a heavy wash */
+.x-venn-region[data-focal="true"] .x-mark-shape { fill: var(--x-accent); fill-opacity: .2; stroke: var(--x-accent); stroke-width: 1.5; }
+
+/* quadrant: neutral checkerboard behind colored points; a named quadrant is picked by its name, so empty plot clicks clear */
+.x-mark.x-quadrant-cell[data-level] .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 3%, var(--x-bg)); }
+.x-mark.x-quadrant-cell[data-level="1"] .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 6%, var(--x-bg)); }
+.x-mark.x-quadrant-cell[data-named] .x-mark-shape { pointer-events: none; }
+.x-mark.x-quadrant-cell.is-hover .x-mark-shape { stroke: none; }
+.x-mark.x-quadrant-cell.is-selected .x-mark-shape { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-quadrant-label { fill: var(--x-text-faint); }
+.x-quadrant-cell:is(.is-hover, .is-selected) .x-quadrant-label { fill: var(--x-text); }
+.x-quadrant-divider { fill: var(--x-text-faint); }
+.x-point .x-mark-shape { stroke: var(--x-bg); stroke-width: 1.5; }

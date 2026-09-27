@@ -1,0 +1,64 @@
+/* bar, waterfall, dumbbell, beeswarm: extends the shared chart rules in base.css */
+
+/* Value labels rest at 400 --x-text-dim, the focal mark's too: the accent fill already points at it, and 600 ink is
+   what selection adds (base.css), so only the selected value reads bold. A value inside a filled segment keeps its
+   on-fill ink when selected (base.css skips .x-on-fill): data-ink when the engine could read the fill
+   (charts-grids.css), else --x-surface. */
+.x-value-label.x-on-fill { fill: var(--x-surface); }
+/* the focal mark's name reads first (only in this family: wardley and the rest keep their widths) */
+:is([data-layout="bar"], [data-layout="waterfall"], [data-layout="dumbbell"], [data-layout="beeswarm"]) .x-mark[data-focal="true"] .x-mark-label { font-weight: 600; }
+
+/* a focal or muted series carries its flag onto the legend swatch */
+.x-legend-item[data-focal="true"] .x-legend-swatch { fill: var(--x-accent); }
+.x-legend-item[data-muted="true"] .x-legend-swatch { fill: var(--x-line-strong); }
+
+/* selection geometry (kit.onSel): the anchor box only places the card; rules and readouts never take clicks */
+:is([data-layout="bar"], [data-layout="waterfall"], [data-layout="dumbbell"], [data-layout="beeswarm"]) .x-anchor { fill: none; stroke: none; pointer-events: none; }
+:is([data-layout="bar"], [data-layout="waterfall"], [data-layout="dumbbell"], [data-layout="beeswarm"]) :is(.x-sel-rule, .x-delta-label, .x-ref-line, .x-ref-band) { pointer-events: none; }
+.x-sel-rule { fill: none; }
+.x-delta-label { fill: var(--x-text); font-weight: 600; paint-order: stroke; stroke: var(--x-bg); stroke-width: 3px; stroke-linejoin: round; }
+.x-legend-note { fill: var(--x-text-dim); }
+
+/* bar: while a one-series bar is selected, the other bars print their difference to it instead of their value */
+[data-layout="bar"] .x-svg:has(.x-bar[data-delta].is-selected) .x-bar[data-delta]:not(.is-selected) > .x-value-label { visibility: hidden; }
+
+/* waterfall: sign is fill weight, not hue. Totals solid, increases tinted, decreases hollow; the accent stays the focal colour */
+.x-waterfall-step { stroke: var(--x-line-strong); }
+.x-waterfall-link { stroke: var(--x-text); stroke-width: 1.25; }
+.x-waterfall-bar[data-sign="up"] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 40%, var(--x-surface)); stroke: var(--x-series-1); stroke-width: 1.5; }
+.x-waterfall-bar[data-sign="down"] .x-mark-shape { fill: var(--x-surface); stroke: var(--x-series-1); stroke-width: 1.5; }
+.x-mark.x-waterfall-bar[data-focal="true"] .x-mark-shape { fill: var(--x-accent); stroke: var(--x-accent); }
+.x-mark.x-waterfall-bar[data-focal="true"][data-sign="down"] .x-mark-shape { fill: color-mix(in oklab, var(--x-accent) 14%, var(--x-surface)); }
+.x-mark.x-waterfall-bar[data-muted="true"] .x-mark-shape { fill: var(--x-line-strong); stroke: var(--x-line-strong); }
+.x-mark.x-waterfall-bar[data-muted="true"][data-sign="down"] .x-mark-shape { fill: var(--x-surface); }
+.x-legend-item[data-sign="up"] .x-legend-swatch { fill: color-mix(in oklab, var(--x-series-1) 40%, var(--x-surface)); stroke: var(--x-series-1); stroke-width: 1.5; }
+.x-legend-item[data-sign="down"] .x-legend-swatch { fill: var(--x-surface); stroke: var(--x-series-1); stroke-width: 1.5; }
+.x-legend-item[data-sign="focal"] .x-legend-swatch { fill: var(--x-accent); }
+
+/* dumbbell: hollow first value, solid second value, one hue; the line carries the change */
+.x-row-hit { fill: transparent; pointer-events: all; }
+.x-dumbbell-band { fill: var(--x-surface-2); }
+.x-dumbbell-bar { stroke: var(--x-line-strong); stroke-width: 2; stroke-linecap: round; }
+.x-dumbbell-arrow { fill: var(--x-line-strong); }
+.x-dumbbell .x-dumbbell-dot { stroke-width: 2; }
+.x-dumbbell .x-dumbbell-from { fill: var(--x-surface); stroke: var(--x-series-1); }
+.x-dumbbell .x-dumbbell-to { fill: var(--x-series-1); stroke: var(--x-series-1); }
+.x-mark.x-dumbbell[data-focal="true"] .x-dumbbell-bar { stroke: var(--x-accent); stroke-width: 3; }
+.x-mark.x-dumbbell[data-focal="true"] .x-dumbbell-arrow { fill: var(--x-accent); }
+.x-mark.x-dumbbell[data-focal="true"] .x-dumbbell-from { fill: var(--x-surface); stroke: var(--x-accent); }
+.x-mark.x-dumbbell[data-focal="true"] .x-dumbbell-to { fill: var(--x-accent); stroke: var(--x-accent); }
+.x-mark.x-dumbbell[data-muted="true"] .x-dumbbell-from { fill: var(--x-surface); stroke: var(--x-line-strong); }
+.x-mark.x-dumbbell[data-muted="true"] .x-dumbbell-to { fill: var(--x-line-strong); stroke: var(--x-line-strong); }
+.x-legend-item[data-end="from"] .x-legend-swatch { fill: var(--x-surface); stroke: var(--x-series-1); stroke-width: 2; }
+.x-legend-item[data-end="to"] .x-legend-swatch { fill: var(--x-series-1); }
+/* selecting a legend end rings every dot of that end */
+[data-layout="dumbbell"] .x-svg:has(.x-legend-item[data-end="from"].is-selected) .x-dumbbell-from,
+[data-layout="dumbbell"] .x-svg:has(.x-legend-item[data-end="to"].is-selected) .x-dumbbell-to { stroke: var(--x-text); stroke-width: 2.5; }
+
+/* beeswarm: a hairline of canvas between touching dots; group median and middle half behind the dots */
+.x-swarm-dot { stroke: var(--x-bg); stroke-width: 1; }
+.x-swarm-iqr { fill: var(--x-text); fill-opacity: .06; }
+.x-swarm-median { stroke: var(--x-text); stroke-width: 1.5; }
+.x-swarm-stats { pointer-events: none; }
+/* the full view always shows each group's median and middle half */
+html[data-view="full"] [data-layout="beeswarm"] .x-swarm-stats { display: revert; }

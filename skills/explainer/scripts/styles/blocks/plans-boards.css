@@ -1,0 +1,306 @@
+/* Plan boards: kanban, journey and story map.
+   HTML grids of cards. Headers, row labels, cards and chips are marks; the client runs hover, selection and dimming. */
+
+/* ---------- type scale ----------
+   base.css sizes `.x-mark` for matrix glyphs (body size, line-height 1). Every board card, head and chip is an
+   `.x-mark` too, so the board's own scale is restated here, one step more specific. */
+
+.x-plan .x-mark { min-width: 0; font-size: var(--x-fs-ui); line-height: 1.35; }
+.x-plan .x-board-head { font-size: var(--x-fs-tag); line-height: 1.3; }
+.x-plan .x-plan-chip { font-size: var(--x-fs-tag); line-height: 1.5; }
+.x-plan .x-storymap-activity { font-size: var(--x-fs-ui); line-height: 1.3; }
+
+/* ---------- shared pieces ---------- */
+
+.x-plan-head,
+.x-plan-rowhead {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: var(--x-radius);
+}
+.x-plan-rowhead { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 2px; align-self: start; }
+.x-plan-rowhead-line { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+/* break between words; a single word only when nothing else fits. The label takes the slack, so the count and the
+   marker lane pack to the right edge */
+.x-plan-head-label, .x-plan-rowhead-label { min-width: 0; margin-right: auto; overflow-wrap: break-word; }
+.x-plan-rowhead-sub { letter-spacing: 0; text-transform: none; color: var(--x-text-dim); }
+.x-plan-head.is-hover, .x-plan-rowhead.is-hover { background: var(--x-surface-2); color: var(--x-text); }
+.x-plan-head.is-selected, .x-plan-rowhead.is-selected { background: var(--x-surface-2); color: var(--x-text); }
+.x-plan-head.is-related, .x-plan-rowhead.is-related { color: var(--x-text); }
+
+/* selection is ink, offset from the element; focal keeps the accent (a selected card is not a second focal) */
+.x-plan :is(.x-card, .x-plan-head, .x-plan-rowhead, .x-plan-chip).is-selected {
+  outline: 2px solid var(--x-sel-ring, var(--x-text));
+  outline-offset: var(--x-sel-gap, 3px);
+}
+.x-plan .x-card.is-selected:not([data-focal="true"]) { border-color: var(--x-line-strong); }
+.x-plan div.x-mark:not(.x-card):focus-visible { outline: 2px solid var(--x-accent); outline-offset: 2px; }
+
+.x-plan-count {
+  flex: none;
+  padding: 0 6px;
+  border: 1px solid var(--x-line);
+  border-radius: 2px;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--x-text-dim);
+}
+
+/* cards: base .x-card paints the box; these lay out the inside */
+.x-plan-card { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.x-plan-card .x-card-label { display: block; font-weight: 500; overflow-wrap: break-word; }
+.x-plan-card .x-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 0; }
+.x-plan-card:where([data-muted="true"]) { color: var(--x-text-dim); }
+/* blocked: an inset bar on the left edge, so it survives focal and selection borders */
+.x-plan-card:where([data-blocked="true"]) { box-shadow: inset 3px 0 0 var(--x-danger); }
+
+.x-plan-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.x-plan-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 1px 6px;
+  border: 1px solid var(--x-line);
+  border-radius: 2px;
+  font-family: var(--x-font-sans);
+  color: var(--x-text-dim);
+  overflow-wrap: anywhere;
+}
+.x-plan-chip.x-mark.is-hover { background: var(--x-surface-2); border-color: var(--x-line-strong); }
+/* related steps up to line-strong: an ink frame would read as a second selection ring */
+.x-plan-chip.x-mark.is-related { border-color: var(--x-line-strong); color: var(--x-text); }
+.x-plan-chip.x-mark.is-selected { background: var(--x-surface-2); color: var(--x-text); }
+
+.x-plan-dot { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--x-text-faint); }
+.x-plan-dot[data-tone="danger"], [data-tone="danger"] > .x-plan-dot { background: var(--x-danger); }
+.x-plan-blocked { display: inline-flex; align-items: center; gap: 5px; color: var(--x-danger-ink, var(--x-danger)); }
+
+/* the marker lane: a mark's numbered note markers (the reading panel's notes) and the docked card's ① pin share one
+   slot inside the mark, never on its border. On a card the lane floats right in the first line and the title wraps
+   around it; on a head, row label or chip its markers are flex items after the count or label. */
+.x-plan-line { display: block; min-width: 0; }
+.x-plan-lane { display: contents; }
+.x-plan-card > .x-plan-line > .x-plan-lane { float: right; display: flex; gap: 4px; margin-left: 8px; }
+.x-plan-note,
+.x-plan-pin {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  pointer-events: none;
+}
+/* in a head, row label or chip the 20px ring centres on the line without growing it or moving the label baseline */
+:is(.x-plan-head, .x-plan-rowhead-line, .x-plan-chip) > .x-plan-lane > * { align-self: center; margin-block: -2px; }
+.x-plan-note { border: 1px solid var(--x-text); background: var(--x-surface); color: var(--x-text); }
+/* the pin is a filled ink dot like its .x-pop-num twin in the card, with no numeral, so it never reads as a note; it
+   shows on the selected mark only while the card docks under the board, and the client then skips the pin it would
+   draw beside the anchor. Until then the slot is empty and boxless, so it takes no room and adds no gap. */
+.x-plan-pin { display: contents; background: none; border: 0; }
+.x-stage.is-dock-below :is(.is-selected, .is-step-active) > .x-plan-lane > .x-plan-pin,
+.x-stage.is-dock-below :is(.is-selected, .is-step-active) > :is(.x-plan-line, .x-plan-rowhead-line) > .x-plan-lane > .x-plan-pin { display: grid; place-items: center; }
+.x-stage.is-dock-below :is(.is-selected, .is-step-active) > .x-plan-lane > .x-plan-pin::before,
+.x-stage.is-dock-below :is(.is-selected, .is-step-active) > :is(.x-plan-line, .x-plan-rowhead-line) > .x-plan-lane > .x-plan-pin::before {
+  content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--x-text);
+}
+html[data-view="bare"] .x-plan-note { display: none; }
+
+/* ---------- kanban: lanes share rows, so heads and first cards line up; lanes never narrower than 180px ---------- */
+
+.x-kanban {
+  --x-plan-n: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(180px, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: 12px;
+  padding: 8px;
+  /* the narrowest it lays out; the card docks under the board rather than squeeze it past this */
+  min-width: calc(var(--x-plan-n) * 192px + 4px);
+}
+.x-kanban[data-cols="2"] { --x-plan-n: 2; }
+.x-kanban[data-cols="3"] { --x-plan-n: 3; }
+.x-kanban[data-cols="4"] { --x-plan-n: 4; }
+.x-kanban[data-cols="5"] { --x-plan-n: 5; }
+.x-kanban[data-cols="6"] { --x-plan-n: 6; }
+.x-kanban[data-cols="7"] { --x-plan-n: 7; }
+.x-kanban[data-cols="8"] { --x-plan-n: 8; }
+.x-kanban-col {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  row-gap: 8px;
+  align-content: start;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--x-radius);
+  background: color-mix(in oklab, var(--x-surface-2) 45%, var(--x-bg));
+}
+/* dark: the light-mode tint lands on --x-surface, the card fill, so lanes recede to the page with a hairline instead */
+[data-theme="dark"] .x-kanban-col { background: var(--x-bg); border-color: var(--x-line); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .x-kanban-col { background: var(--x-bg); border-color: var(--x-line); }
+}
+.x-kanban-cards { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.x-kanban-facts { display: inline-flex; flex: none; align-items: center; gap: 8px; }
+.x-kanban-flag { display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0; color: var(--x-danger-ink, var(--x-danger)); }
+.x-kanban-head[data-tone="warn"] .x-plan-count {
+  color: var(--x-warn-ink, var(--x-warn));
+  border-color: var(--x-warn);
+  background: var(--x-warn-tint, var(--x-surface));
+}
+/* dimming fades a whole HTML mark; its grey mono text (heads, counts, meta, chips) turns ink first so it stays ≥ 3:1 */
+.x-plan .x-mark.is-dimmed,
+.x-plan .x-mark.is-dimmed :is(.x-plan-count, .x-plan-rowhead-sub, .x-card-meta, .x-plan-blocked, .x-kanban-flag, .x-plan-chip) { color: var(--x-text); }
+/* a chip follows its card: it never dims on its own inside a lit card, and never dims twice inside a dim one */
+.x-plan .x-kanban-tag.is-dimmed { opacity: 1; filter: none; }
+
+/* ---------- journey and story map: row-label column + one column per stage or step ----------
+   Columns narrow as they multiply so a budget-sized board fits the 1080px page: ≤5 at 180px, 6 at 140px, 7+ at 96px. */
+
+.x-plan-grid {
+  --x-plan-lab: minmax(min-content, 140px);
+  --x-plan-col: 180px;
+  --x-plan-gap: 12px;
+  display: grid;
+  gap: 8px var(--x-plan-gap);
+  align-items: stretch;
+  padding: 8px;
+  /* the narrowest it lays out (a row-label column of about 96px plus every stage column); the card docks under the
+     board rather than squeeze it past this */
+  min-width: calc(112px + var(--x-plan-n, 1) * (var(--x-plan-col) + var(--x-plan-gap)));
+}
+.x-plan-grid[data-cols="6"] { --x-plan-col: 140px; }
+.x-plan-grid:is([data-cols="7"], [data-cols="8"], [data-cols="9"], [data-cols="10"], [data-cols="11"], [data-cols="12"]) {
+  --x-plan-lab: minmax(min-content, 120px);
+  --x-plan-col: 96px;
+  --x-plan-gap: 8px;
+}
+.x-plan-grid:is([data-cols="7"], [data-cols="8"], [data-cols="9"], [data-cols="10"], [data-cols="11"], [data-cols="12"]) .x-card {
+  padding: 6px 7px;
+  font-size: var(--x-fs-caption);
+}
+.x-plan-grid[data-cols="1"] { --x-plan-n: 1; grid-template-columns: var(--x-plan-lab) repeat(1, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="2"] { --x-plan-n: 2; grid-template-columns: var(--x-plan-lab) repeat(2, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="3"] { --x-plan-n: 3; grid-template-columns: var(--x-plan-lab) repeat(3, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="4"] { --x-plan-n: 4; grid-template-columns: var(--x-plan-lab) repeat(4, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="5"] { --x-plan-n: 5; grid-template-columns: var(--x-plan-lab) repeat(5, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="6"] { --x-plan-n: 6; grid-template-columns: var(--x-plan-lab) repeat(6, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="7"] { --x-plan-n: 7; grid-template-columns: var(--x-plan-lab) repeat(7, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="8"] { --x-plan-n: 8; grid-template-columns: var(--x-plan-lab) repeat(8, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="9"] { --x-plan-n: 9; grid-template-columns: var(--x-plan-lab) repeat(9, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="10"] { --x-plan-n: 10; grid-template-columns: var(--x-plan-lab) repeat(10, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="11"] { --x-plan-n: 11; grid-template-columns: var(--x-plan-lab) repeat(11, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid[data-cols="12"] { --x-plan-n: 12; grid-template-columns: var(--x-plan-lab) repeat(12, minmax(var(--x-plan-col), 1fr)); }
+.x-plan-grid > [data-span="2"] { grid-column: span 2; }
+.x-plan-grid > [data-span="3"] { grid-column: span 3; }
+.x-plan-grid > [data-span="4"] { grid-column: span 4; }
+.x-plan-grid > [data-span="5"] { grid-column: span 5; }
+.x-plan-grid > [data-span="6"] { grid-column: span 6; }
+.x-plan-grid > [data-span="7"] { grid-column: span 7; }
+.x-plan-grid > [data-span="8"] { grid-column: span 8; }
+.x-plan-grid > [data-span="9"] { grid-column: span 9; }
+.x-plan-grid > [data-span="10"] { grid-column: span 10; }
+.x-plan-grid > [data-span="11"] { grid-column: span 11; }
+.x-plan-grid > [data-span="12"] { grid-column: span 12; }
+
+.x-plan-cell { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.x-plan-divider { grid-column: 1 / -1; height: 1px; margin-top: 8px; background: var(--x-line-strong); }
+
+/* when the board scrolls sideways, the row labels stay in view */
+.x-plan-grid .x-plan-rowhead { position: sticky; left: 0; z-index: 1; background: var(--x-bg); }
+.x-plan-grid .x-plan-rowhead:is(.is-hover, .is-selected) { background: var(--x-surface-2); }
+
+/* journey: no column gap, so the sentiment band's % positions land on column centres */
+.x-plan-grid.x-journey { --x-plan-gap: 0px; }
+.x-journey > .x-plan-head { margin-inline: 6px; }
+.x-journey > .x-plan-rowhead { margin-right: 6px; }
+.x-journey > .x-plan-cell { padding-inline: 6px; }
+.x-journey .x-plan-cell > .x-plan-card { flex: 1 0 auto; }
+.x-journey-strip { grid-column: 2 / -1; min-width: 0; padding: 0; }
+.x-journey-svg { display: block; width: 100%; overflow: visible; }
+.x-journey-hair { stroke: var(--x-line); stroke-width: 1; }
+.x-journey-zero { stroke: var(--x-line-strong); stroke-width: 1; stroke-dasharray: 2 3; }
+.x-journey-line { fill: none; stroke: var(--x-text-faint); stroke-width: 1.5; stroke-linecap: round; }
+/* 0 is neutral, not a warning */
+.x-journey-point[data-tone="neutral"] .x-mark-shape { fill: var(--x-text-dim); }
+.x-journey-pain { align-self: flex-start; color: var(--x-text); border-color: color-mix(in oklab, var(--x-danger) 45%, var(--x-line)); }
+
+/* story map: activities are the backbone (sans, filled), steps sit under them (mono) */
+.x-storymap-activity {
+  font-family: var(--x-font-sans);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--x-text);
+  background: var(--x-surface-2);
+}
+.x-storymap-activity.is-hover:not(.is-selected) { box-shadow: inset 0 0 0 1px var(--x-line-strong); }
+.x-storymap-step { align-self: end; }
+.x-storymap-release { padding-top: 8px; }
+.x-storymap-row { display: contents; }
+
+/* faint column rules in the gaps between steps */
+.x-storymap > .x-storymap-step::before,
+.x-storymap-row > .x-plan-cell::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: calc(var(--x-plan-gap) / -2 - .5px);
+  width: 1px;
+  background: color-mix(in oklab, var(--x-line) 70%, transparent);
+  pointer-events: none;
+}
+
+/* the release cut: everything above ships first */
+.x-storymap-cut { position: relative; height: 2px; margin-block: 14px 6px; background: var(--x-text); }
+.x-storymap-cut-tag {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-left: 8px;
+  background: var(--x-bg);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--x-text);
+}
+
+/* the thin-slice check: a selected release shows the steps it leaves empty (an .x-on-sel hook, revealed by its row) */
+.x-storymap-row:has(> .x-storymap-release.is-selected) .x-storymap-gap {
+  display: block;
+  padding: 6px 8px;
+  border: 1px dashed var(--x-line-strong);
+  border-radius: var(--x-radius);
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  text-align: center;
+  color: var(--x-text-dim);
+}
+
+/* ---------- small screens: boards scroll sideways and keep their column minimums ---------- */
+
+@media (max-width: 640px) {
+  .x-kanban { column-gap: 8px; }
+  .x-plan-grid { --x-plan-gap: 8px; }
+  .x-plan-grid.x-journey { --x-plan-gap: 0px; }
+}

@@ -1,0 +1,42 @@
+/* ---------- matrix and compare: type visuals only (states live in base.css) ---------- */
+
+/* matrix: as wide as its columns need, value columns centred; each cell's mark fills it so a click anywhere selects it */
+.x-matrix { width: auto; min-width: min(100%, 480px); max-width: 100%; }
+.x-matrix td.x-cell { padding: 0; }
+.x-matrix .x-cell > .x-mark { display: block; min-width: 3em; padding: 8px 12px; text-align: center; }
+html[data-js] .x-matrix .x-cell > .x-mark { cursor: pointer; }
+/* the "no" dot is information too: keep it at 3:1 */
+.x-matrix .x-cell[data-value="no"] { color: var(--x-text-dim); }
+
+/* compare: header, one row per dimension and the points line up across cards */
+.x-compare-item[data-focal="true"] { background: color-mix(in oklab, var(--x-accent) 6%, var(--x-surface)); }
+.x-compare[data-rows] { row-gap: 16px; }
+.x-compare[data-rows] > .x-compare-item { display: grid; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
+.x-compare[data-rows="2"] > .x-compare-item { grid-row: span 2; }
+.x-compare[data-rows="3"] > .x-compare-item { grid-row: span 3; }
+.x-compare[data-rows="4"] > .x-compare-item { grid-row: span 4; }
+.x-compare[data-rows="5"] > .x-compare-item { grid-row: span 5; }
+.x-compare[data-rows="6"] > .x-compare-item { grid-row: span 6; }
+.x-compare[data-rows="7"] > .x-compare-item { grid-row: span 7; }
+.x-compare[data-rows="8"] > .x-compare-item { grid-row: span 8; }
+.x-compare-item > .x-compare-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 0;
+  border-top: 1px solid var(--x-line);
+  font-size: var(--x-fs-ui);
+  line-height: 1.4;
+}
+.x-compare-row > dt {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  color: var(--x-text-dim);
+}
+.x-compare-row > dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--x-text); font-weight: 500; }
+html[data-js] .x-compare-row { cursor: pointer; }
+.x-compare-item > .x-compare-points { margin-top: 10px; }
+.x-compare-points:empty { display: none; }

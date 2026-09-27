@@ -1,0 +1,36 @@
+/* Flow charts: funnel, pyramid, sankey. Shared chart rules (series, focal, muted, ramp, states) live in base.css;
+   on-fill label ink (data-ink) lives in charts-grids.css and covers these charts too. */
+
+/* ---------- funnel ---------- */
+.x-funnel-value { font-variant-numeric: tabular-nums; }
+.x-mark[data-focal="true"] .x-funnel-rate { fill: var(--x-accent); }
+/* shown while a stage is selected: the span from the first stage and the share of the top */
+.x-funnel-bracket { fill: none; stroke: var(--x-text-dim); stroke-width: 1.25; stroke-linecap: round; }
+.x-funnel-total { fill: var(--x-text); font-weight: 600; }
+
+/* ---------- pyramid: data-level carries rank; focal and muted must beat the ramp ---------- */
+.x-chart[data-layout="pyramid"] .x-mark-shape { stroke-linejoin: round; }
+.x-chart[data-layout="pyramid"] .x-mark[data-focal="true"] .x-mark-shape { fill: var(--x-accent); }
+.x-chart[data-layout="pyramid"] .x-mark[data-muted="true"] .x-mark-shape { fill: var(--x-line-strong); }
+
+/* ---------- sankey: bands take the source node's color at 35% ---------- */
+.x-chart[data-layout="sankey"] .x-sankey-link { fill-opacity: .35; stroke: none; }
+.x-chart[data-layout="sankey"] .x-edge-hit { fill: none; }
+.x-sankey-node[data-mix="true"] .x-mark-shape { fill: var(--x-text-dim); }
+.x-sankey-flow[data-mix="true"] .x-sankey-link { fill: var(--x-text-dim); }
+.x-chart[data-layout="sankey"] .x-mark[data-muted="true"] .x-mark-shape { fill: var(--x-line-strong); }
+.x-chart[data-layout="sankey"] .x-mark[data-focal="true"] .x-mark-shape { fill: var(--x-accent); }
+.x-chart[data-layout="sankey"] .x-sankey-flow[data-focal="true"] .x-sankey-link { fill-opacity: .55; }
+/* Tiers: adjacent bands are related (.6), bands reachable up- or downstream are context (.45). Hover and
+   selection brighten the band too; the ink outline that tells selection from hover is base.css's ring
+   (drawn above the band in .x-sel-layer), so nothing here strokes the band itself. */
+.x-chart[data-layout="sankey"] .x-sankey-flow.is-context .x-sankey-link { fill-opacity: .45; }
+.x-chart[data-layout="sankey"] .x-sankey-flow:is(.is-related, .is-hover, .is-selected, .is-step-active) .x-sankey-link { fill-opacity: .6; }
+.x-sankey-label { paint-order: stroke; stroke: var(--x-bg); stroke-width: 3px; stroke-linejoin: round; }
+.x-sankey-value {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 400;
+  fill: var(--x-text-dim);
+  font-variant-numeric: tabular-nums;
+}

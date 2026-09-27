@@ -1,0 +1,137 @@
+{
+  "name": "default",
+  "fonts": {
+    "sans": {
+      "family": "Geist",
+      "fallback": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "faces": [
+        {
+          "file": "geist-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "unicodeRange": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+        },
+        {
+          "file": "geist-latin-ext-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "unicodeRange": "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF"
+        }
+      ]
+    },
+    "mono": {
+      "family": "Geist Mono",
+      "fallback": "ui-monospace, \"SF Mono\", Menlo, Consolas, monospace",
+      "faces": [
+        {
+          "file": "geist-mono-latin-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "unicodeRange": "U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD"
+        },
+        {
+          "file": "geist-mono-latin-ext-wght-normal.woff2",
+          "weight": "100 900",
+          "style": "normal",
+          "unicodeRange": "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF"
+        }
+      ]
+    }
+  },
+  "colors": {
+    "light": {
+      "bg": "#FAF8F5",
+      "surface": "#FFFFFF",
+      "surface-2": "#F3EFE9",
+      "line": "#E6E1D9",
+      "line-strong": "#C4BCB0",
+      "text": "#1F1D1A",
+      "text-dim": "#5F5A52",
+      "text-faint": "#908A81",
+      "accent": "#B54A1E",
+      "ok": "#3D7A4C",
+      "warn": "#9A6512",
+      "danger": "#B03A32",
+      "info": "#3E6F92",
+      "link": "#56698A",
+      "ok-ink": "#3B754A",
+      "warn-ink": "#946112",
+      "danger-ink": "#B03A32",
+      "ok-tint": "#E8EFEA",
+      "warn-tint": "#F3EDE3",
+      "danger-tint": "#F6E7E6"
+    },
+    "dark": {
+      "bg": "#161514",
+      "surface": "#1E1D1B",
+      "surface-2": "#292724",
+      "line": "#34312D",
+      "line-strong": "#4D4943",
+      "text": "#ECE8E1",
+      "text-dim": "#A8A197",
+      "text-faint": "#6F6A62",
+      "accent": "#E07A4F",
+      "ok": "#74B083",
+      "warn": "#D6A04E",
+      "danger": "#E06B61",
+      "info": "#72A6CB",
+      "link": "#93A5C6",
+      "ok-ink": "#74B083",
+      "warn-ink": "#D6A04E",
+      "danger-ink": "#E17167",
+      "ok-tint": "#282F27",
+      "warn-tint": "#342D21",
+      "danger-tint": "#352623"
+    }
+  },
+  "states": {
+    "light": { "dim-fill": 0.28, "dim-stroke": 0.35, "dim-sat": 0.3, "dim-focal": 0.45, "sel-ring": 2, "sel-gap": 3 },
+    "dark": { "dim-fill": 0.4, "dim-stroke": 0.5, "dim-sat": 0.35, "dim-focal": 0.45, "sel-ring": 2, "sel-gap": 3 }
+  },
+  "series": {
+    "light": [
+      "#3E6F92",
+      "#C08A3E",
+      "#4F8B6F",
+      "#8B5E9E",
+      "#5C8C9A",
+      "#A3747F",
+      "#8C8A4A",
+      "#6E7489"
+    ],
+    "dark": [
+      "#7FA8C9",
+      "#D9A864",
+      "#7FB89A",
+      "#B892C8",
+      "#88B6C2",
+      "#CC9AA5",
+      "#B8B574",
+      "#9DA3B8"
+    ]
+  },
+  "type": {
+    "caption": 13,
+    "ui": 13,
+    "body": 15,
+    "h2": 19,
+    "h1": 26,
+    "nodeLabel": 13,
+    "nodeSub": 13,
+    "edgeLabel": 13,
+    "tag": 13
+  },
+  "radius": 6,
+  "grid": {
+    "unit": 8,
+    "cell": [
+      160,
+      64
+    ],
+    "gap": [
+      104,
+      48
+    ],
+    "pad": 32
+  }
+}

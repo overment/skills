@@ -1,0 +1,50 @@
+/* schema + uml: boxes on the figure grid with member rows; relations reuse .x-edge from the grid figure.
+   Selection is the ink ring from base.css; this file only gives rows, boxes and notation ends their related look. */
+
+/* box: a table or a class */
+.x-struct-box > .x-mark-shape { fill: var(--x-surface); stroke: var(--x-line); stroke-width: 1; }
+/* focal: accent outline and a tinted name band; the rows stay on the plain surface so dimmed rows keep 3:1 */
+.x-struct-box.x-mark[data-focal="true"] > .x-mark-shape { fill: var(--x-surface); stroke: var(--x-accent); }
+.x-struct-band { fill: none; }
+.x-struct-box.x-mark[data-focal="true"] > .x-struct-band { fill: color-mix(in oklab, var(--x-accent) 12%, var(--x-surface)); }
+.x-struct-box.x-mark[data-muted="true"] > .x-mark-shape { fill: var(--x-bg); stroke: var(--x-line); }
+.x-struct-box.x-mark:is(.is-related, .is-step-done):not([data-focal="true"]) > .x-mark-shape { stroke: var(--x-text-dim); stroke-width: 1.25; }
+
+.x-struct-name { font-family: var(--x-font-sans); font-size: var(--x-fs-node); font-weight: 600; fill: var(--x-text); }
+.x-struct-name.x-italic { font-style: italic; }
+.x-struct-stereo { font-family: var(--x-font-mono); font-size: var(--x-fs-tag); fill: var(--x-text-dim); }
+.x-struct-member { font-family: var(--x-font-sans); font-size: var(--x-fs-node-sub); fill: var(--x-text); }
+.x-struct-member.x-mono { font-family: var(--x-font-mono); }
+.x-struct-type { font-family: var(--x-font-mono); font-size: var(--x-fs-tag); fill: var(--x-text-dim); font-variant-numeric: tabular-nums; }
+.x-struct-rule { stroke: var(--x-line); stroke-width: 1; }
+[data-muted="true"] :is(.x-struct-name, .x-struct-member) { fill: var(--x-text-dim); }
+
+/* PK / FK chips: an outline on the table's own surface, so a dimmed chip label reads like the rest of its row */
+.x-struct-chip { fill: none; stroke: var(--x-line); stroke-width: 1; }
+.x-struct-chip[data-key="pk"] { stroke: var(--x-line-strong); }
+.x-struct-chip-label { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); font-weight: 600; fill: var(--x-text-dim); }
+
+/* rows (columns, members): invisible at rest; the other end of a key, an inherited member and the
+   selected row itself get a surface fill. Inside a selected box every row is related, so none is filled. */
+.x-struct-col > .x-mark-shape { fill: transparent; stroke: none; }
+.x-struct-col.x-mark:is(.is-selected, .is-related, .is-hover, .is-step-active) > .x-mark-shape { fill: var(--x-surface-2); }
+:is(.x-struct-table, .x-struct-class):has(> .x-struct-box:is(.is-selected, .is-step-active)) .x-struct-col.is-related > .x-mark-shape { fill: transparent; }
+
+/* relations: dashed kinds, notation ends that follow their line's colour, labels, bus junctions */
+.x-struct-edge.x-dashed .x-edge-line { stroke-dasharray: 5 4; }
+.x-struct-head { fill: var(--x-bg); stroke: var(--x-text-dim); stroke: context-stroke; stroke-width: 1.25; stroke-linejoin: round; }
+.x-struct-head.x-filled { fill: var(--x-text-dim); fill: context-stroke; }
+.x-struct-head.x-open { fill: none; stroke-linecap: round; }
+.x-struct-join { fill: var(--x-text-dim); }
+.x-edge:is(.is-hover, .is-selected, .is-related, .is-step-done) .x-struct-join { fill: var(--x-text); }
+.x-struct-label, .x-struct-mult {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-edge);
+  font-variant-numeric: tabular-nums;
+  fill: var(--x-text-dim);
+  paint-order: stroke;
+  stroke: var(--x-bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.x-edge:is(.is-selected, .is-related, .is-step-done) :is(.x-struct-label, .x-struct-mult) { fill: var(--x-text); }

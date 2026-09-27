@@ -1,0 +1,78 @@
+/* plans-time: gantt and timeline. Geometry comes from the renderers; this file adds only the roles base.css lacks. */
+
+/* ---------- gantt ---------- */
+
+.x-gantt-group-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+.x-gantt-group .x-mark-shape { fill: var(--x-line-strong); }
+.x-gantt-group:is(.is-hover, .is-selected) .x-gantt-group-label { fill: var(--x-text); }
+
+/* progress: the bar becomes a tint, the inner bar is the share done */
+.x-gantt-task[data-progress] .x-mark-shape { fill: color-mix(in oklab, var(--x-series-1) 30%, var(--x-surface)); }
+.x-gantt-task[data-progress][data-focal="true"] .x-mark-shape { fill: color-mix(in oklab, var(--x-accent) 30%, var(--x-surface)); }
+.x-gantt-task[data-progress][data-muted="true"] .x-mark-shape { fill: color-mix(in oklab, var(--x-line-strong) 40%, var(--x-surface)); }
+.x-gantt-progress { fill: var(--x-series-1); pointer-events: none; }
+.x-gantt-task[data-focal="true"] .x-gantt-progress { fill: var(--x-accent); }
+.x-gantt-task[data-muted="true"] .x-gantt-progress { fill: var(--x-line-strong); }
+.x-gantt-task[data-muted="true"] .x-mark-label { fill: var(--x-text-dim); }
+
+/* no progress reported in a chart that tracks it: an outline, so unstarted work never looks finished.
+   :where keeps hover and selection strokes from base.css in charge. */
+.x-gantt-task:where([data-outline="true"]) .x-mark-shape { fill: var(--x-surface); stroke: var(--x-series-1); stroke-width: 1.25; }
+.x-gantt-task:where([data-outline="true"][data-focal="true"]) .x-mark-shape { stroke: var(--x-accent); }
+.x-gantt-task:where([data-outline="true"][data-muted="true"]) .x-mark-shape { stroke: var(--x-line-strong); }
+.x-gantt-key-outline { fill: var(--x-surface); stroke: var(--x-series-1); stroke-width: 1.25; }
+
+.x-gantt-task .x-anchor { fill: none; stroke: none; pointer-events: none; }
+.x-gantt-date { pointer-events: none; }
+
+/* critical path: ink connectors at rest, the key swatch matches */
+.x-gantt-crit .x-edge-line { stroke: var(--x-text); stroke-width: 1.75; }
+.x-gantt-crit-key .x-gantt-key-line { stroke: var(--x-text); stroke-width: 1.75; stroke-linecap: round; }
+.x-gantt-key-hit { fill: transparent; }
+.x-gantt-crit-key:is(.is-selected, .is-hover, .is-context) .x-legend-label { fill: var(--x-text); }
+
+/* slack ghost: from the bar's end to its latest finish. On selection in the bare view, always in the full view. */
+.x-gantt-slack-box { fill: none; stroke: var(--x-text-dim); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.x-gantt-slack-label { font-family: var(--x-font-sans); font-size: var(--x-fs-tag); fill: var(--x-text-dim); font-variant-numeric: tabular-nums; pointer-events: none; }
+html[data-view="full"] .x-gantt-task .x-gantt-slack { display: revert; }
+
+.x-gantt-today-mark .x-gantt-today { stroke: var(--x-accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.x-gantt-today-hit { stroke: transparent; stroke-width: 12; pointer-events: stroke; }
+.x-gantt-today-label { fill: var(--x-accent); }
+
+/* ---------- timeline ---------- */
+
+.x-timeline-leader { stroke: var(--x-line-strong); stroke-width: 1; }
+.x-timeline-event:is(.is-hover, .is-selected, .is-step-active) .x-timeline-leader { stroke: var(--x-text); }
+.x-timeline-event[data-focal="true"] .x-timeline-leader { stroke: var(--x-accent); stroke-width: 1.25; }
+.x-timeline-event .x-mark-shape { stroke: var(--x-bg); stroke-width: 2; }
+.x-timeline-event[data-muted="true"] .x-mark-label { fill: var(--x-text-dim); }
+
+.x-timeline-period .x-mark-shape { fill: color-mix(in oklab, var(--x-text) 5%, transparent); pointer-events: none; }
+.x-timeline-period:is(.is-hover, .is-selected, .is-step-active) .x-mark-shape {
+  fill: color-mix(in oklab, var(--x-text) 9%, transparent);
+  stroke: var(--x-line-strong);
+  stroke-width: 1;
+}
+/* related (the era of a selected event): an outline with no wash, so the dimmed labels inside it keep 3:1 */
+.x-timeline-period.is-related .x-mark-shape { fill: none; stroke: var(--x-line-strong); stroke-width: 1; }
+.x-timeline-period-label,
+.x-timeline-lane-label {
+  font-family: var(--x-font-sans);
+  font-size: var(--x-fs-tag);
+  font-weight: 600;
+  fill: var(--x-text-dim);
+}
+.x-timeline-period:is(.is-hover, .is-selected, .is-related) .x-timeline-period-label,
+.x-timeline-lane:is(.is-hover, .is-selected) .x-timeline-lane-label { fill: var(--x-text); }
+.x-timeline-lane:focus { outline: none; }
+.x-timeline-lane:focus-visible .x-timeline-lane-label { fill: var(--x-accent); }
+
+/* the axis strip: drag across it to select a date range (client brush) */
+.x-timeline-brush { fill: transparent; }
+html[data-js] .x-timeline-brush { cursor: col-resize; }
