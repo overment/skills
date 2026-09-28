@@ -56,16 +56,18 @@ The values are theme tokens (`--x-dim-fill`, `--x-dim-stroke`, `--x-dim-sat`, `-
 
 A click opens a card inside the figure, next to the element, with a thin leader line to it (a caret when they nearly touch). It never covers the selected element, and it tries hard not to cover what the selection lights up or any label: when no spot beside the element is clear, it docks in a right gutter (the plot shrinks a little, its layout doesn't change) or under the figure. A docked card draws no marker of its own: the ink ring already shows what it is about, and the card's title names it. On screens under 640px it always docks under the figure. Its position depends only on the layout and the window width, so `shot` always shows the same card.
 
-What it shows, top to bottom:
+What it shows, top to bottom. Each line has to tell a reader who just joined something the canvas doesn't:
 
-- **Eyebrow:** the kind in the legend's words, plus a position: `BAR · 5 OF 7`, `DATA STORE`, `TASK · CRITICAL`.
-- **Breadcrumb** for nested things (`Data › Primary database`), then the **title**. A connector's title is its two ends, each a chip.
+- **Eyebrow,** only when the kind means something: `Data store · hub`, `Trust boundary`, `Critical`, `Step 3 of 5`, `Message 4 / 8 · reply`. A word that only names what was clicked (bar, point, cell, tile, plain flow) is left out, and so is a count like "5 of 7", except where the order is the point (steps, stages, messages).
+- **Breadcrumb** for nested things (`Data › Primary database`), then the **title**. A connector's title is its two ends, each a link.
 - **Value** with its unit, never a repeat of the title.
-- **Facts:** up to 5 computed rows (rank, share, delta, slack, conversion). A fact that names another element is a chip that selects it. When a reading-panel note points at the element, it comes first as "Note n". Each thing is said once: a fact that repeats the value, the kind in the eyebrow, the `about` sentence or the chips below it is left out, so a reader who just joined never reads a line twice. A value too long for the rest of its line moves under its key rather than squeeze it.
-- **About:** the author's text.
-- **Relations:** the engine's semantic groups ("Waits for", "Flows to", "Referenced by"), or else the connectors in reading order, in the author's words ("confirms ←", "charges card →"; an unlabelled one says "From" or "To"). A relation to one part is one row, words left and chip right; several parts under the same words share a heading over their chips. A relation to only the breadcrumb or an edge's own ends is left out. Chips wrap; nothing is truncated.
-- **Mentioned in text:** up to two linked sentences (full view). A click scrolls to the sentence and flashes it.
-- **Actions:** ‹ Back (after following a chip; up to 8 steps), Compare, Hide (series with a legend entry), Copy link, Play from here (when the element is in a scene).
+- **About:** the author's description, first, because it is what the reader came for: what the part does, why it is there, what to watch.
+- **Note:** when a reading-panel note points at the element, it follows with its number in the same ring the canvas marker uses; the canvas callout steps aside while the card shows it.
+- **Facts:** up to 5 computed rows (rank, share, delta, slack, conversion). A fact that names another element links to it. Each thing is said once: a fact that repeats the value, the kind in the eyebrow, the `about` sentence or the relations below it is left out. A value too long for the rest of its line moves under its key rather than squeeze it.
+- **Relations:** the engine's semantic groups ("Waits for", "Flows to", "Referenced by"), or else the connectors in reading order, in the author's words ("confirms ←", "charges card →"; an unlabelled one says "From" or "To"). A relation to one part is one row, words left and name right; several parts under the same words share a heading. A relation to only the breadcrumb or an edge's own ends is left out. Names are links in the page's one link style, not boxes; they wrap and are never truncated.
+- **Actions,** only the ones that do something here: ‹ Back (after following a link; up to 8 steps), Compare (only on marks with a number, where it computes a difference), Hide (series with a legend entry), Play from here (when the element is in a scene). The address bar already holds the state, so there is no "Copy link". The prose sentences about the element light up on the page, so the card does not quote them.
+
+A card that would say nothing the canvas doesn't (a connector with no `about`, no facts and no relations beyond its two ends) does not open: the ring and the dimming already show what was picked.
 
 In compare mode the card shows A vs B: both values and every fact they share, with the difference ("46k vs 45k, +1k"). A `detail` block elsewhere on the page mirrors the card.
 

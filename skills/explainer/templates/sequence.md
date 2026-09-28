@@ -11,10 +11,10 @@ id: magic-link
 layout: sequence
 title: Signing in with an emailed link
 actors:
-  browser: { label: Browser, kind: actor, about: "The person signing in and the tab they started in." }
+  browser: { label: Browser, kind: actor, about: "The person signing in and the tab they started in. It never holds a password: the only secret it ever sees is the one-time link from the email." }
   app:     { label: Web app, about: "Shows the sign-in form. Holds no secrets and asks Auth for every decision." }
   auth:    { label: Auth service, focal: true, about: "Creates and checks one-time links. Issues the session once a link is used." }
-  mail:    { label: Email provider, kind: external, about: "Delivers the link to the inbox. Usually takes a few seconds." }
+  mail:    { label: Email provider, kind: external, about: "Delivers the link to the inbox, usually within a few seconds. It runs outside our systems, so a slow or bounced email is the most common reason sign-in stalls." }
 messages:
   - browser -> app: enters email
   - app -> auth: requests link

@@ -151,7 +151,7 @@ Each law carries one line of rationale. When two laws conflict, the earlier sect
   Chunks beyond five stop reading as one thing.
 - **B4 Labels fit their cell.** A label longer than `labelCapacity` is rewritten, not shrunk (`label-fit`).
   Smaller text is compression without structure.
-- **B5 Every node has an `about`** that adds information instead of repeating the label (`about-missing`, `about-repeats`).
+- **B5 Every node has an `about`** that adds information instead of repeating the label (`about-missing`, `about-repeats`): what it does, why it is there, what to watch, in two or three short sentences (`about-thin` under 12 words).
   The card is where the micro lives; an empty card wastes the click.
 - **B6 Paragraph budget.** At most ~3 lines per paragraph and ~2 paragraphs between blocks.
   More means the content wants a matrix, compare or figure.

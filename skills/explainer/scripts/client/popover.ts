@@ -26,13 +26,32 @@ const MINUS = "−";
 const labelOf = (model: DocModel, id: string) => model.elements[id]?.label || id;
 const chip = (model: DocModel, id: string): Chip => ({ id, text: labelOf(model, id) });
 
+/**
+ * Words that only name what the reader just clicked: a bar in a bar chart, a cell in a heatmap, a plain arrow. They
+ * say nothing the mark doesn't, so the eyebrow drops them and keeps the kinds that carry meaning (data store,
+ * external, trust boundary, reply, composition, critical, hub).
+ */
+const GENERIC = new Set([
+  "node", "service", "state", "phase", "flow", "transition", "connector", "edge", "point", "cell", "bar", "tile", "segment",
+  "series", "line", "column", "row", "card", "story", "event", "change", "axis", "rank", "part", "cause", "category",
+  "group", "attribute", "operation", "component", "class", "tag", "proof", "span", "set", "dimension", "item", "lane",
+  "period", "activity", "task", "table", "container", "quadrant", "chip", "level", "tier",
+]);
+/** Kinds whose place in an order is the point: "Step 3 of 5", "Message 4 / 8". Elsewhere a count repeats the rank or the drawing. */
+const ORDERED = new Set(["step", "stage", "message", "phase"]);
+const COUNT = /^(level\s+)?\d+\s*(of|\/)\s*\d+$/i;
+
 function eyebrow(el: ElementInfo): string {
-  // a node of the default kind has no word: "Service" is software vocabulary a diagram about anything else doesn't use,
-  // and the breadcrumb already says where the node sits
-  const kind = el.type === "edge" ? EDGE_WORDS[el.kind ?? "flow"] ?? el.kind ?? "connector"
-    : el.type === "node" ? (el.kind === "service" ? "" : NODE_WORDS[el.kind ?? ""] ?? el.kind ?? "node")
+  const raw = el.type === "edge" ? EDGE_WORDS[el.kind ?? "flow"] ?? el.kind ?? "connector"
+    : el.type === "node" ? NODE_WORDS[el.kind ?? ""] ?? el.kind ?? "node"
     : el.kind || el.type;
-  const s = [kind, el.pos].filter(Boolean).join(" · ");
+  const word = (raw ?? "").toLowerCase();
+  const ordered = ORDERED.has(word);
+  // a position like "3 of 7" or "3 / 8 · reply" keeps only its words ("reply") unless the order is the point
+  const pos = (el.pos ?? "").split(" · ").map((x) => x.trim()).filter((x) => x && (ordered || !COUNT.test(x)));
+  const kind = GENERIC.has(word) ? "" : raw;
+  const lead = ordered && pos.length && COUNT.test(pos[0]) ? [`${raw} ${pos.shift()}`] : kind ? [kind] : [];
+  const s = [...lead, ...pos].join(" · ");
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -192,10 +211,9 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", text?
 const chipButton = (c: Chip, cls = "x-chip") => h("button", cls, c.text, { type: "button", "data-ref": c.id });
 
 export interface CardExtras {
-  note?: { n: string; text: string };            // the reading-panel note on this element, listed first
-  mentions?: { i: number; text: string }[];      // linked prose sentences, full view only
+  note?: { n: string; text: string };            // the reading-panel note on this element: the author's point about it
   back?: Chip;                                   // the previous selection made through a chip
-  compare?: boolean;                             // offer "Compare"
+  compare?: boolean;                             // offer "Compare": only where a comparison computes something
   picking?: boolean;                             // compare mode is waiting for the second element
   hide?: boolean;                                // offer "Hide" (a series or group with a legend entry)
   play?: string;                                 // scene id for "Play from here"
@@ -216,9 +234,9 @@ function actions(box: HTMLElement, x: CardExtras) {
   if (x.picking) row.append(h("span", "x-pop-hint", "Pick an element to compare"));
   else if (x.compare) btn("compare", "Compare");
   if (x.hide) btn("hide", "Hide");
-  btn("copy", "Copy link");
   if (x.play) btn("play-scene", "Play from here", { "data-scene": x.play });
-  box.append(row);
+  // the address bar already holds the state, so the card offers no "Copy link"; an empty row is not drawn
+  if (row.childElementCount) box.append(row);
 }
 
 /**
@@ -247,8 +265,8 @@ function groups(box: HTMLElement, list: RelGroup[]) {
   }
 }
 
-function facts(box: HTMLElement, list: Fact[], note?: CardExtras["note"]) {
-  if (!list.length && !note) return;
+function facts(box: HTMLElement, list: Fact[]) {
+  if (!list.length) return;
   const dl = h("dl", "x-pop-facts");
   const row = (k: string, v: HTMLElement | string, tone?: string, cls = "") => {
     const div = h("div", `x-pop-fact${cls}`);
@@ -258,11 +276,6 @@ function facts(box: HTMLElement, list: Fact[], note?: CardExtras["note"]) {
     div.append(h("dt", "", k), dd);
     dl.append(div);
   };
-  // data-note lets the client hide the canvas callout that would repeat this note while the card is open
-  if (note) {
-    row(`Note ${note.n}`, note.text, undefined, " x-pop-note");
-    (dl.lastElementChild as HTMLElement).dataset.note = note.n;
-  }
   for (const f of list) row(f.k, f.ref ? chipButton({ id: f.ref, text: f.v }) : f.v, f.tone);
   box.append(dl);
 }
@@ -281,21 +294,34 @@ export function renderCard(d: CardData, popId: string, x: CardExtras = {}): HTML
   else title.textContent = d.title;
   box.append(title);
   if (d.value) box.append(h("p", "x-pop-value", d.value));
-  facts(box, d.facts, x.note);
+  // What it is and why it matters come first, in the author's words, then the author's note on it with its number
+  // (data-note lets the client hide the canvas callout that would say it twice while the card is open), then the
+  // computed facts and the relations that back them up. The prose that mentions it lights up on the page, so the
+  // card does not quote it.
   if (d.aboutHtml) {
     const about = h("div", "x-pop-about");
     about.innerHTML = d.aboutHtml; // built at build time by safeMarkdown: raw HTML off, safe link schemes only
     box.append(about);
   }
-  groups(box, d.groups);
-  if (x.mentions?.length) {
-    const div = h("div", "x-pop-rel x-pop-mentions");
-    div.append(h("p", "x-pop-k", "Mentioned in text ↓"));
-    x.mentions.forEach((m) => div.append(h("button", "x-pop-mention", m.text, { type: "button", "data-sent": String(m.i) })));
-    box.append(div);
+  if (x.note) {
+    const note = h("p", "x-pop-note", undefined, { "data-note": x.note.n });
+    note.append(h("span", "x-pop-note-n", x.note.n, { "aria-label": `Note ${x.note.n}:` }), x.note.text);
+    box.append(note);
   }
+  facts(box, d.facts);
+  groups(box, d.groups);
   actions(box, x);
   return box;
+}
+
+/** A card worth opening says something the canvas doesn't: a description, a note, a computed fact or a relation. */
+export function saysSomething(d: CardData, x: CardExtras = {}): boolean {
+  return !!(d.aboutHtml || x.note || d.facts.length || d.groups.length);
+}
+
+/** A comparison computes a difference only between marks that carry a number. */
+export function comparable(el: ElementInfo | undefined): boolean {
+  return !!el && (parseNum(el.value) !== null || (el.facts ?? []).some((f) => f.raw !== undefined));
 }
 
 export function renderCompare(c: CompareData, popId: string, x: CardExtras = {}): HTMLElement {

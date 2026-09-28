@@ -19,7 +19,7 @@ nodes:
   draft:   { label: Writing app, at: [1, 1], about: "Where drafts live until they are submitted. Saves every change so nothing is lost." }
   review:  { label: Review queue, at: [2, 1], about: "Holds submitted drafts until an editor approves them or asks for changes." }
   publish: { label: Publisher, at: [3, 1], focal: true, about: "Turns an approved draft into live pages. The only part allowed to write to the CDN." }
-  content: { label: Content store, at: [3, 2], kind: store, about: "Keeps every published version so any page can be rolled back." }
+  content: { label: Content store, at: [3, 2], kind: store, about: "Keeps every published version so any page can be rolled back. Nothing is overwritten, so a bad publish costs one click to undo rather than a restore from backup." }
   cdn:     { label: CDN, at: [4, 1], kind: external, about: "Serves pages to readers from servers near them. Caches each page for up to five minutes." }
   search:  { label: Search index, at: [4, 0], kind: store, about: "Lets readers find stories by title and text. Updated in the background after each publish." }
 edges:

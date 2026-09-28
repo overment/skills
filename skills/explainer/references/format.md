@@ -121,7 +121,7 @@ nodes:
 | `span` | `[1, 1]` | `[cols, rows]` |
 | `kind` | `service` | See the kinds below |
 | `focal` | `false` | Accent treatment. At most 2 per figure |
-| `about` | none | One or two sentences for the card. Markdown inline |
+| `about` | none | Two or three short sentences for the card: what it does, why it is there, what to watch. Markdown inline |
 | `tags` | `[]` | Short strings for your own grouping. Not drawn on the canvas |
 
 | Kind | Use for | Drawn as |
@@ -377,7 +377,7 @@ Prose, `about`, notes, captions, glossary definitions and front-matter `summary`
 
 - `[text](#id)` where `id` is any element id (node, edge, group, matrix row or column, compare item) becomes a live reference. Hovering it highlights the element; clicking it selects it. Edge ids work too: `[sends it back](#review->draft)`.
 - `[text](#a+b)` selects `a` and compares it with `b`: "[Mobile passed web in April](#wau-mobile-3+wau-web-3)" opens the A-vs-B card with the difference.
-- The whole sentence around a link is linked too: selecting a mark highlights every sentence that points at it, and the card offers "Mentioned in text". So link the claim, not just the noun: "[Organic search brought 4,120 signups](#signups-organic-search)".
+- The whole sentence around a link is linked too: selecting a mark highlights every sentence that points at it. So link the claim, not just the noun: "[Organic search brought 4,120 signups](#signups-organic-search)".
 - Links to ids that don't exist fail `ref-exists`. Ordinary `#heading` links still work, and never change the page state.
 - Glossary terms are wrapped automatically: the first occurrence in each prose segment, whole words, case-insensitive. Hovering or focusing the term shows its definition. Don't mark them up yourself.
 
@@ -426,6 +426,7 @@ The default theme: `unit` 8, cell 160 × 64, gaps 104 (x) and 48 (y), padding 32
 | `edge-label` | A connector label is over 3 words or 18 characters |
 | `about-missing` | A node has no `about` |
 | `about-repeats` | An `about` starts with the label |
+| `about-thin` | A node or actor `about` has fewer than 12 words: it names the part again rather than explain it |
 | `label-duplicate` | Two elements show the same label |
 | `route` | A connector couldn't be routed cleanly. Move a node |
 | `note-target` | A note's `on` or a story step points at an id that doesn't exist |

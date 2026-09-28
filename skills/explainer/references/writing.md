@@ -6,7 +6,7 @@ The canvas is for names. The card is for meaning. The prose is for the story. Mo
 
 - **Name the job, not the build.** A label says what the part does for the reader, in their words. Versions, frameworks and internal codenames go in `sub` or nowhere.
 - **Connectors are verbs, only when needed.** Use a lowercase verb phrase of at most 3 words. When the arrow's meaning is obvious from the two ends, drop the label.
-- **`about` adds, never repeats.** It starts with what the label can't say: the purpose, a constraint, or a consequence. One or two sentences.
+- **`about` explains the part to someone who joined today.** It starts with what the label can't say and answers three questions in two or three short sentences: what it does (in the reader's words), why it is there (what depends on it, what it protects), and what to watch (the constraint, the failure, the number that matters). A chart mark needs less: one sentence on why its value is what it is, since the computed facts carry the rest.
 - **One term, one meaning.** Use the same word for the same thing on the canvas, in prose and in the matrix. A term the reader won't know goes in the glossary, not into a longer label.
 - **No chrome.** No boxes around the figure, no "Figure 1", no header saying "Architecture diagram". The page title and the first sentence do that work.
 - **Mono for identifiers.** Events, states, ports and field names go in `sub` or connector labels. They're not quoted, because the typeface does the quoting.
@@ -18,6 +18,7 @@ The canvas is for names. The card is for meaning. The prose is for the story. Mo
 | Node `AuthZ Svc v2 (internal)` | `Permissions` | Name the job. The version and visibility are noise, or a `sub` at most |
 | Edge `sends HTTP POST request with JSON payload` | `submits order` | Say what happens, not how it travels |
 | `Gateway` with about `The Gateway is the gateway service that handles requests.` | `Checks the session before anything else runs. Rejects about 2% of traffic.` | Add purpose and consequence instead of repeating the label |
+| `Catalog` with about `Serves products and prices.` | `Serves products and prices to every page. It is read far more than written, so answers are cached for a minute: a price change can take that long to show.` | What it does, why it is built that way, and the surprise a new teammate would otherwise hit |
 | Edge `calls` on `Checkout → Payment provider` | No label | The arrow already says it |
 | Node `Idempotent Retry Handler` | `Retries` plus a glossary entry for *idempotent* | Keep the label plain and define the jargon once |
 | A header `SYSTEM ARCHITECTURE DIAGRAM`, a framed card and a caption `Figure 1: Overview of components` | A first sentence stating the conclusion, then the figure | Chrome says nothing the reader needs |

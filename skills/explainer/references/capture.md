@@ -99,7 +99,7 @@ It prints one line per check: `✓` passed, `✗` failed (with each problem and 
 | label × line | a label is crossed by a connector, series line, bone or structure path that isn't its own (checked segment by segment against the glyphs' box; lines hidden under an opaque shape behind the label don't count) |
 | text size | a visible text renders below 13px: svg text is measured after the figure's scale, HTML text by its computed size |
 | figure wider than column | a figure, stage or block is wider than the page column, or the page scrolls sideways |
-| interaction | clicking one element of each selectable type (node, edge, edge label, card, table or class box, column or member row, mark, legend item, group label, table row and column, compare item) selects nothing, leaves something in its figure neither lit nor dimmed, opens no card or a card that doesn't name it, or Esc doesn't clear it |
+| interaction | clicking one element of each selectable type (node, edge, edge label, card, table or class box, column or member row, mark, legend item, group label, table row and column, compare item) selects nothing, leaves something in its figure neither lit nor dimmed, opens no card (except a connector with no `about`, facts or relations beyond its ends, which opens none on purpose) or a card that doesn't name it, or Esc doesn't clear it |
 | card covers selected | the open card hides any of the selected element |
 | card covers related | the open card hides more than 25% of what the selection lights up |
 | related undimmed | something the selection relates to (or keeps as context) is dimmed |

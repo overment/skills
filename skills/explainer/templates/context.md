@@ -11,10 +11,10 @@ id: support-seq
 layout: sequence
 title: One question, two calls
 actors:
-  customer: { label: Customer, kind: actor, about: "Asks about an order in the chat on the help page." }
+  customer: { label: Customer, kind: actor, about: "Asks about an order in the chat on the help page. They see only the bot's replies, never the calls behind them, so every answer has to stand on its own." }
   bot:      { label: Support bot, focal: true, about: "Our service. Keeps the message list, calls the model and runs the tools the model asks for." }
   model:    { label: Model, kind: external, about: "Reads the list it is sent and replies with text or a tool request. It keeps no memory between calls." }
-  orders:   { label: Orders API, about: "Returns an order's status, carrier and dates." }
+  orders:   { label: Orders API, about: "Returns an order's status, carrier and dates. It is our own service, not the model: the bot calls it, and the model only sees what comes back." }
 messages:
   - customer -> bot: asks
   - bot -> model: sends call 1

@@ -716,8 +716,12 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
 .x-pop-fact dt { flex: 1 0 auto; max-width: 100%; color: var(--x-text-dim); }
 .x-pop-fact dd { flex: 0 1 auto; max-width: 100%; margin: 0 0 0 auto; text-align: right; overflow-wrap: anywhere; }
 .x-pop-fact dd > .x-chip { white-space: nowrap; max-width: 100%; overflow-wrap: anywhere; }
-.x-pop-note { display: block; padding-bottom: 4px; }
-.x-pop-note dd { max-width: none; text-align: left; }
+/* the author's note on this part: its number in the same ring the canvas marker uses, then the note */
+.x-pop-note { display: flex; gap: 8px; align-items: baseline; margin: 0; color: var(--x-text); }
+.x-pop-note-n {
+  display: inline-grid; flex: none; place-items: center; width: 18px; height: 18px; border: 1px solid var(--x-text); border-radius: 50%;
+  font-size: var(--x-fs-tag); font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; transform: translateY(-1px);
+}
 .x-pop-about { color: var(--x-text); }
 .x-pop-about :is(p, ul, ol) { margin: 0 0 8px; }
 .x-pop-about > :last-child { margin-bottom: 0; }
@@ -740,19 +744,14 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
   cursor: pointer;
 }
 .x-chip:hover, .x-chip.is-hover { border-color: var(--x-line-strong); }
-.x-pop-mention {
-  display: block;
-  width: 100%;
-  padding: 4px 8px;
-  background: transparent;
-  border: 1px solid var(--x-line);
-  border-radius: var(--x-radius);
-  font-size: var(--x-fs-caption);
-  text-align: left;
-  color: var(--x-text-dim);
-  cursor: pointer;
+/* In the card a part's name is a link, in the one link style (Y8), not a box: a card of boxes inside a box reads as
+   a row of buttons, and the reader looks for what they do instead of reading the names. */
+.x-pop .x-chip, .x-detail .x-chip {
+  padding: 0; background: none; border: 0; line-height: inherit;
+  text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: var(--x-text-faint); text-underline-offset: 3px;
 }
-.x-pop-mention + .x-pop-mention { margin-top: 4px; }
+.x-pop .x-chip:hover, .x-pop .x-chip.is-hover, .x-detail .x-chip:hover { text-decoration-color: var(--x-text); }
+.x-pop .x-chips, .x-detail .x-chips { gap: 2px 12px; }
 .x-pop-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 4px; }
 .x-pop-act {
   padding: 0;
@@ -798,7 +797,7 @@ html[data-js] .x-scene:hover { background: var(--x-surface-2); border-color: var
    the plot never shrinks), in flow under the figure otherwise */
 .x-stage.is-dock-right, .x-pop-host.is-dock-right { padding-right: calc(var(--x-pop-w, 256px) + 16px); }
 .x-stage.is-dock-right.has-gutter, .x-pop-host.is-dock-right.has-gutter { padding-right: 0; }
-.is-dock-below > .x-pop { position: relative; left: auto; top: auto; width: auto; max-width: 544px; margin-top: 16px; }
+.is-dock-below > .x-pop { position: relative; left: auto; top: auto; width: auto; max-width: 400px; margin-top: 16px; }
 
 /* annotation layer: in the full view each note is also a callout on the graph, joined to its marker */
 .x-callouts { position: absolute; inset: 0; z-index: 8; pointer-events: none; }

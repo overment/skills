@@ -3,7 +3,7 @@
 import type { DocModel, ElementInfo, Mode, SceneSpec, StoryStep, View } from "../engine/types.ts";
 import { crosses, dockColumn, GUTTER, leader, LEADER_MAX, nearest, place, placeCallouts, WEIGHT, type CalloutItem, type Obstacle, type Rect } from "./place.ts";
 import { composite, pickInk, saturate, type Rgb, type Rgba } from "./ink.ts";
-import { cardData, compareData, h, renderCallout, renderCard, renderCompare, type CardExtras } from "./popover.ts";
+import { cardData, comparable, compareData, h, renderCallout, renderCard, renderCompare, saysSomething, type CardExtras } from "./popover.ts";
 
 export interface State {
   sel: string | null;
@@ -829,20 +829,13 @@ export function boot(): void {
     const li = $$(".x-reading-note[data-refs]").find((el) => refIds(el.dataset.refs).includes(id));
     return li ? { n: li.dataset.note ?? "", text: li.querySelector(".x-reading-note-text")?.textContent?.trim() ?? "" } : undefined;
   };
-  const mentionsOf = (id: string) =>
-    viewOf(state) !== "full" ? [] : sents
-      .map((el, i) => ({ el, i }))
-      .filter(({ el }) => refIds(el.dataset.refs).includes(id) && shown(el))
-      .slice(0, 2)
-      .map(({ el, i }) => ({ i, text: el.textContent?.trim() ?? "" }));
   const extrasFor = (id: string): CardExtras => {
     const el = model.elements[id];
     const legend = index.get(id)?.some((x) => x.matches(".x-legend-item"));
     return {
       note: noteFor(id),
-      mentions: mentionsOf(id),
       back: back.length ? { id: back[back.length - 1], text: model.elements[back[back.length - 1]]?.label ?? back[back.length - 1] } : undefined,
-      compare: true,
+      compare: comparable(el),
       picking,
       hide: !!legend && el?.type === "group",
       play: scenesWith(id),
@@ -859,7 +852,9 @@ export function boot(): void {
       if (c) return { id: sel, body: renderCompare(c, popId, extrasFor(sel)) };
     }
     const d = cardData(model, sel);
-    return d ? { id: sel, body: renderCard(d, popId, extrasFor(sel)) } : null;
+    const x = extrasFor(sel);
+    // a card that would only repeat the canvas stays shut: the ring and the dimming already show what was picked
+    return d && saysSomething(d, x) ? { id: sel, body: renderCard(d, popId, x) } : null;
   };
   const renderPop = (s: State) => {
     closePops();
@@ -1155,7 +1150,7 @@ export function boot(): void {
     const { sel } = frameOf(s);
     const d = sel ? cardData(model, sel) : null;
     for (const p of panels) {
-      if (d && sel) p.replaceChildren(renderCard(d, `${p.id || "x-detail"}-card`, { ...extrasFor(sel), mentions: [] }));
+      if (d && sel) p.replaceChildren(renderCard(d, `${p.id || "x-detail"}-card`, extrasFor(sel)));
       else p.innerHTML = empty.get(p) ?? "";
       if (p.dataset.placement !== "inline") p.hidden = !d;
     }
@@ -1273,12 +1268,6 @@ export function boot(): void {
     renderSteps(state);
   };
   const toggleHide = (id: string) => set({ hide: state.hide.includes(id) ? state.hide.filter((x) => x !== id) : [...state.hide, id] });
-  const flash = (el: Element) => {
-    el.classList.remove("is-flash");
-    void (el as HTMLElement).offsetWidth;
-    el.classList.add("is-flash");
-    setTimeout(() => el.classList.remove("is-flash"), 1200);
-  };
   const copy = (text: string, btn: HTMLElement) => {
     const done = () => {
       const was = btn.textContent;
@@ -1314,7 +1303,6 @@ export function boot(): void {
       }
     },
     unhide: (_, btn) => toggleHide(btn.dataset.id ?? ""),
-    copy: (_, btn) => copy(location.href, btn),
     "play-scene": (_, btn) => {
       const id = btn.dataset.scene ?? "";
       const sc = model.scenes[id];
@@ -1395,13 +1383,6 @@ export function boot(): void {
     }
     const sc = t.closest<HTMLElement>(".x-scene");
     if (sc) return startScene(sc.dataset.scene ?? null);
-    const mention = t.closest<HTMLElement>(".x-pop-mention");
-    if (mention) {
-      const sent = sents[Number(mention.dataset.sent)];
-      sent?.scrollIntoView({ block: "center", behavior: reduced() || capture ? "auto" : "smooth" });
-      if (sent) flash(sent);
-      return;
-    }
     const note = t.closest<HTMLElement>(".x-reading-note[data-refs], .x-note-marker[data-for], .x-callout[data-refs]");
     if (note) return toggle(refIds(note.dataset.refs ?? note.dataset.for)[0]);
     const multi = t.closest<HTMLElement>(".x-ref[data-cmp]");

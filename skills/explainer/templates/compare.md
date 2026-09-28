@@ -44,8 +44,8 @@ grid: [3, 2]
 nodes:
   provider: { label: Payment provider, at: [0, 0], kind: external, about: "Settles the charge with the bank and reports the result exactly once." }
   endpoint: { label: Webhook endpoint, at: [1, 0], focal: true, about: "The one public URL the provider calls. Rejects any message without a valid signature." }
-  orders:   { label: Orders, at: [2, 0], about: "Records that the order is paid and when it happened." }
-  mailer:   { label: Receipts, at: [2, 1], about: "Emails the receipt once the order is marked paid." }
+  orders:   { label: Orders, at: [2, 0], about: "Records that the order is paid and when it happened. It is the single source of truth for payment status, so support and the shopper see the same answer." }
+  mailer:   { label: Receipts, at: [2, 1], about: "Emails the receipt once the order is marked paid. It runs after the payment is settled, so a slow mail server delays the receipt but never the payment." }
 edges:
   - provider => endpoint: notifies
   - endpoint --> provider: acknowledges

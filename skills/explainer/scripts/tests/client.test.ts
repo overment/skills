@@ -231,7 +231,21 @@ describe("card: content", () => {
     expect(d.title).toBe("Bot answer → Reopened");
     expect(d.ends).toEqual([{ id: "bot", text: "Bot answer" }, { id: "reopened", text: "Reopened" }]);
     expect(d.value).toBe("800 · 30% of Bot answer");
-    expect(d.eyebrow).toBe("Flow · 6 of 11");
+    expect(d.eyebrow).toBe(""); // a plain band in a flow chart: "Flow · 6 of 11" said only what was clicked
+  });
+  test("the eyebrow keeps kinds that mean something and counts only where order is the point", () => {
+    const m: DocModel = { elements: {
+      bar: { id: "bar", type: "mark", label: "Direct", kind: "bar", pos: "2 of 7" },
+      step: { id: "step", type: "mark", label: "Pack", kind: "step", pos: "3 of 5" },
+      msg: { id: "msg", type: "edge", label: "asks", kind: "message", pos: "4 / 8 · reply", from: "a", to: "b" },
+      task: { id: "task", type: "mark", label: "Review", kind: "task", pos: "critical" },
+      hub: { id: "hub", type: "node", label: "Memory", kind: "store", pos: "hub" },
+    }, scenes: {}, glossary: {} } as unknown as DocModel;
+    expect(cardData(m, "bar")!.eyebrow).toBe("");
+    expect(cardData(m, "step")!.eyebrow).toBe("Step 3 of 5");
+    expect(cardData(m, "msg")!.eyebrow).toBe("Message 4 / 8 · reply");
+    expect(cardData(m, "task")!.eyebrow).toBe("Critical");
+    expect(cardData(m, "hub")!.eyebrow).toBe("Data store · hub");
   });
   test("eyebrow words match the legend", () => {
     expect(cardData(model, "db")!.eyebrow).toBe("Data store");

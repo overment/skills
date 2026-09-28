@@ -14,9 +14,9 @@ nodes:
   customer: { label: Customer, at: [0, 1], kind: actor, about: "Asks a question from the help page. Expects an answer or a named person within minutes." }
   form:     { label: Help form, at: [1, 1], about: "Collects the question and the order number. Rejects an email address that cannot receive mail." }
   triage:   { label: Triage, at: [2, 1], focal: true, about: "Reads the first lines and matches them against known topics. Decides who answers in under a second." }
-  bot:      { label: Answer bot, at: [3, 0], about: "Replies with the matching help article. Most known questions end here." }
+  bot:      { label: Answer bot, at: [3, 0], about: "Replies with the matching help article within seconds. Most known questions end here, which keeps agents free for the ones that need a person." }
   agent:    { label: Support agent, at: [3, 2], kind: actor, about: "A person on the support team. Sees the full history before replying." }
-  history:  { label: Ticket history, at: [2, 2], kind: store, about: "Every question and reply for each customer. Kept for two years." }
+  history:  { label: Ticket history, at: [2, 2], kind: store, about: "Every question and reply for each customer, kept for two years. Agents read it before answering, so nobody has to ask the customer to repeat themselves." }
 edges:
   - customer -> form: asks
   - form -> triage

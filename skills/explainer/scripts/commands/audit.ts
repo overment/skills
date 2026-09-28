@@ -26,7 +26,7 @@ export const CHECKS: [name: string, about: string][] = [
   ["callout × line", "no in-graph callout sits on a connector, and no callout's leader crosses a connector it isn't about"],
   ["text size", "no visible text renders below 13px, diagram labels (after scaling) included"],
   ["figure wider than column", "no figure, stage or block is wider than the page column"],
-  ["interaction", "clicking one element of each selectable type selects it, lights or dims the rest, and opens its card; Esc clears"],
+  ["interaction", "clicking one element of each selectable type selects it, lights or dims the rest, and opens its card (a connector with nothing to add opens none); Esc clears"],
   ["card covers selected", "the open card hides none of the selected element"],
   ["card covers related", "the open card hides at most 25% of what the selection lights up"],
   ["related undimmed", "nothing related to (or in context of) the selection is dimmed"],
@@ -906,14 +906,17 @@ export function inspect(opts: { sel: string | null; source: string | null }): Fi
     if (card) {
       // Relation chips in the card's relation groups, or the older one-button rows. The title, the
       // breadcrumb and fact chips name one thing each, so they aren't relation rows.
-      const rows = [...card.querySelectorAll<HTMLElement>(".x-pop-rel:not(.x-pop-mentions) [data-ref], .x-link-row[data-ref]")];
+      const rows = [...card.querySelectorAll<HTMLElement>(".x-pop-rel [data-ref], .x-pop-rows [data-ref], .x-link-row[data-ref]")];
       const problems: string[] = [];
       const self = info?.type === "edge" ? null : name(sel);
       for (const r of rows) {
         const target = r.getAttribute("data-ref")!;
         // A chip reads with its group header ("Blocks · Public launch"); an older row is one button.
+        // a one-part relation is a row: its words in the dt, the part in the dd
         const group = r.closest(".x-pop-rel");
-        const text = group ? `${group.querySelector(".x-pop-k")?.textContent ?? ""} ${r.textContent ?? ""}` : (r.closest("li") ?? r).textContent ?? "";
+        const row = r.closest(".x-pop-rows .x-pop-fact");
+        const text = group ? `${group.querySelector(".x-pop-k")?.textContent ?? ""} ${r.textContent ?? ""}`
+          : row ? `${row.querySelector("dt")?.textContent ?? ""} ${r.textContent ?? ""}` : (r.closest("li") ?? r).textContent ?? "";
         if (self && G.repeatsEndpoints(text, self, name(target))) problems.push(`the row "${words(text, 60)}" repeats both ends; write "verb → ${name(target)}"`);
       }
       put("relation wording", problems, rows.length > 0, rows.length ? undefined : "the card has no relation rows");
@@ -1042,7 +1045,10 @@ export async function interact(): Promise<Outcome> {
       const cards = [...document.querySelectorAll(".x-pop, .x-detail:not([data-placement]):not([hidden]), [data-detail]")].filter(shown);
       const text = norm(cards.map((c) => c.textContent).join(" "));
       const names = info.type === "edge" ? [els[info.from]?.label, els[info.to]?.label, info.label].filter(Boolean) : [info.label];
-      if (!cards.length) problems.push(`clicking the ${what} opened no card`);
+      // A connector with nothing to add (no about, facts or relations beyond its ends) opens no card on purpose.
+      const silent = info.type === "edge" && !info.about && !info.facts?.length && !info.links?.length;
+      if (silent) { /* the ring and the dimming answer the click; no card is expected */ }
+      else if (!cards.length) problems.push(`clicking the ${what} opened no card`);
       else if (!names.some((n: string) => text.includes(norm(n)))) problems.push(`the card for the ${what} doesn't name it`);
     }
     (document.activeElement ?? document.body).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", code: "Escape", bubbles: true, cancelable: true }));

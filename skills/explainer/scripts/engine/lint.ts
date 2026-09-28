@@ -82,15 +82,22 @@ function lintSequence(seq: SequenceBlock, emit: Emit) {
   for (const message of seq.messages) edgeLabel(message, "Message", seq.line, emit);
 }
 
+/** Fewer words than this and an `about` only names the part again. */
+const ABOUT_MIN_WORDS = 12;
+
 function aboutRules(node: NodeSpec, what: string, line: number, emit: Emit) {
   const about = node.about?.trim();
   if (!about) {
-    emit("about-missing", "warn", `${what} "${node.id}" has no \`about\`; add one sentence on what it does.`, line);
+    emit("about-missing", "warn", `${what} "${node.id}" has no \`about\`; say what it does, why it is there and what to watch.`, line);
     return;
   }
   const label = node.label.trim().toLowerCase();
   if (label && about.toLowerCase().startsWith(label))
     emit("about-repeats", "warn", `${what} "${node.id}" \`about\` starts by repeating its label; start with what it does.`, line);
+  // A part of a system is what a new reader clicks to understand; a few words name it again rather than explain it.
+  const words = about.split(/\s+/).length;
+  if (words < ABOUT_MIN_WORDS)
+    emit("about-thin", "warn", `${what} "${node.id}" \`about\` has ${words} words; add why it is there or what to watch (a constraint, a failure, a number), in two or three short sentences.`, line);
 }
 
 function edgeLabel(edge: EdgeSpec, what: string, line: number, emit: Emit) {

@@ -31,7 +31,7 @@ const THEME: Theme = {
 };
 
 const node = (id: string, over: Partial<NodeSpec> = {}): NodeSpec => ({
-  id, label: `Part ${id}`, at: [0, 0], span: [1, 1], kind: "service", focal: false, about: "Handles work for the caller.", tags: [], ...over,
+  id, label: `Part ${id}`, at: [0, 0], span: [1, 1], kind: "service", focal: false, about: "Handles work for the caller and answers within a second, so nothing upstream has to wait on it.", tags: [], ...over,
 });
 const edge = (from: string, to: string, over: Partial<EdgeSpec> = {}): EdgeSpec => ({ id: `${from}->${to}`, from, to, kind: "flow", ...over });
 const figure = (over: Partial<FigureBlock> = {}): FigureBlock => ({
@@ -50,6 +50,12 @@ const check = (blocks: Block[], segments: Segment[] = []) => lint(doc(segments),
 describe("lint", () => {
   test("a clean document has no diagnostics", () => {
     expect(check([figure(), sequence(), { type: "steps", for: "fig", line: 30 }])).toEqual([]);
+  });
+
+  test("about-thin: a few words only name the part; two or three sentences explain it", () => {
+    const thin = figure({ nodes: [node("a", { about: "Stores orders." }), node("b")] });
+    expect(rules(check([thin]))).toContain("about-thin");
+    expect(rules(check([figure()]))).not.toContain("about-thin");
   });
 
   test("budget-nodes", () => {

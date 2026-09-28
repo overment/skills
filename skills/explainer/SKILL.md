@@ -5,7 +5,7 @@ description: >-
 license: MIT (bundled Geist fonts under OFL-1.1, see assets/fonts/OFL.txt)
 metadata:
   author: overment
-  version: "0.4.1"
+  version: "0.4.2"
 ---
 
 # Explainer
@@ -100,7 +100,7 @@ Grid layouts and their anti-patterns are in [references/layouts.md](references/l
 - Could someone new explain the system back to me after ten seconds with the figure?
 - Does every node, connector and label earn its place? What did I cut?
 - Is every part in the figure something I read in the source, not something I assumed?
-- Does each `about` add what the label can't: purpose, constraint, or consequence?
+- Would a teammate who joined today understand each part from its `about` alone: what it does, why it is there, what to watch?
 - Is there one clear focal point, or is everything equally loud?
 
 ## References
