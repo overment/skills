@@ -30,7 +30,7 @@ Exists so that: a later reader knows what was chosen and why.
 describe("links", () => {
   test("a linked base passes with no errors or orphans", async () => {
     const root = base({
-      "AGENTS.md": "Start at [the index](notes/index.md).",
+      "README.md": "Start at [the index](notes/index.md).",
       "notes/index.md": "See [[pricing]] and [pricing again](pricing.md) and [the web](https://example.com) and [a section](#top).",
       "notes/pricing.md": "Back to [[index]].",
     });
@@ -42,7 +42,7 @@ describe("links", () => {
 
   test("broken links are errors, but links in code are ignored", async () => {
     const root = base({
-      "AGENTS.md": "[gone](notes/gone.md) and [[missing]]\n\n```\n[[also-missing]]\n```\n\n`[[inline]]`",
+      "README.md": "[gone](notes/gone.md) and [[missing]]\n\n```\n[[also-missing]]\n```\n\n`[[inline]]`",
     });
     const report = (await check(root, TODAY));
     expect(rules(report.errors)).toEqual(["broken-link", "broken-link"]);
@@ -51,7 +51,7 @@ describe("links", () => {
 
   test("a bare name that matches two notes is ambiguous until the folder is given", async () => {
     const root = base({
-      "AGENTS.md": "[[index]] then [[a/index]]",
+      "README.md": "[[index]] then [[a/index]]",
       "a/index.md": "",
       "b/index.md": "[[a/index]]",
     });
@@ -61,7 +61,7 @@ describe("links", () => {
 
   test("attachments, dotted titles, aliases, headings and extensionless paths resolve", async () => {
     const root = base({
-      "AGENTS.md": "![[diagram.png]] [[v1.2 release|the release]] [[v1.2 release#Notes]] [x](notes/plain)",
+      "README.md": "![[diagram.png]] [[v1.2 release|the release]] [[v1.2 release#Notes]] [x](notes/plain)",
       "diagram.png": "",
       "v1.2 release.md": "",
       "notes/plain.md": "",
@@ -71,7 +71,7 @@ describe("links", () => {
 
   test("wikilinks in frontmatter count as links", async () => {
     const root = base({
-      "AGENTS.md": "",
+      "README.md": "",
       "people/anna.md": "",
       "calls/call.md": '---\ncustomer: "[[anna]]"\n---\n',
     });
@@ -112,7 +112,7 @@ describe("frontmatter and contracts", () => {
 describe("signals", () => {
   test("orphans skip the root folder, contracts and archives", async () => {
     const root = base({
-      "AGENTS.md": "",
+      "README.md": "",
       "types/decision.md": DECISION,
       "notes/lonely.md": "",
       "archive/old.md": "",
@@ -158,14 +158,14 @@ describe("signals", () => {
   });
 
   test("a folder with more than a thousand notes is crowded", async () => {
-    const files: Record<string, string> = { "AGENTS.md": "" };
+    const files: Record<string, string> = { "README.md": "" };
     for (let i = 0; i < 1001; i++) files[`calls/${i}.md`] = "";
     const crowded = (await check(base(files), TODAY)).signals.filter((s) => s.rule === "crowded-folder");
     expect(crowded.map((s) => s.file)).toEqual(["calls/"]);
   });
 
   test("the text report groups signals and marks errors", async () => {
-    const root = base({ "AGENTS.md": "[[missing]]", "notes/a.md": "", "notes/b.md": "" });
+    const root = base({ "README.md": "[[missing]]", "notes/a.md": "", "notes/b.md": "" });
     const text = format(await check(root, TODAY));
     expect(text).toContain("✗ 1 error");
     expect(text).toContain("orphan (2)");
@@ -175,7 +175,7 @@ describe("signals", () => {
 describe("--files", () => {
   const files = () =>
     base({
-      "AGENTS.md": "[[gone]]",
+      "README.md": "[[gone]]",
       "types/decision.md": DECISION,
       "decisions/old.md": "---\ntype: decision\n---\n[[also-gone]]",
       "decisions/new.md": "---\ntype: decision\ndate: 2026-09-01\nstatus: done\n---\nSee [[old]] and [[nowhere]]. It happened yesterday.",
@@ -205,7 +205,7 @@ describe("--files", () => {
 describe("sizes and templates", () => {
   test("a full run reports the largest folders and longest notes", async () => {
     const report = await check(
-      base({ "AGENTS.md": "", "a/1.md": "word ".repeat(40), "a/2.md": "word ".repeat(900), "b/1.md": "word ".repeat(10) }),
+      base({ "README.md": "", "a/1.md": "word ".repeat(40), "a/2.md": "word ".repeat(900), "b/1.md": "word ".repeat(10) }),
       TODAY,
     );
     expect(report.sizes?.folders[0]).toEqual({ folder: "a/", notes: 2 });

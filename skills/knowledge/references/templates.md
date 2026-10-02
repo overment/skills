@@ -10,7 +10,7 @@ Group notes by what a reader wants from them, not by topic; topics are links or 
 
 ## The contract
 
-One file per type, named after it (`types/decision.md`); a note joins it with `type: decision`. `check.ts` enforces the contract's `required` fields and `values` lists on those notes. It reads due dates only from `review`, `review_by`, `expires` and `valid_until`, so use those names.
+One note per type, named after it (`types/decision.md`); a note joins it with `type: decision`. `check.ts` enforces the contract's `required` fields and `values` lists on those notes. It finds contracts only among the base's notes and skips dot-folders, so keep them in the base and link to them from its skill. It reads due dates only from `review`, `review_by`, `expires` and `valid_until`, so use those names.
 
 ```markdown
 ---

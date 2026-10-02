@@ -1,6 +1,6 @@
 # Content
 
-Open this when deciding what goes into the base and how it's written. This is the base's content bar: put a short version of it, in the base's own words, into the context file.
+Open this when deciding what goes into the base and how it's written. This is the base's content bar: put a short version of it, in the base's own words, into the base's skill.
 
 ## What earns a place
 
@@ -35,9 +35,9 @@ It holds two things that change for different reasons, so it becomes a note and 
 
 Choose how new material enters:
 
-- **Directly into place,** when writers are agents with the context file loaded.
+- **Directly into place,** when writers are agents working from the base's skill.
 - **Through an inbox,** when capture must be instant. Say who empties it and when.
 - **From the conversation,** when the person states a fact while asking a question. File it the same way, citing the conversation and its date as the source.
 - **From automated feeds,** where a script does the mechanical part and each input is filed once ([scale](scale.md)).
 
-Next: [context](context.md).
+Next: [instructions](instructions.md).

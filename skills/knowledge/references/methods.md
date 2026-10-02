@@ -22,6 +22,6 @@ Open this before choosing how the base is organized, written and kept true. It l
 
 - Every base you design comes out the same: always PARA, always Zettelkasten.
 - A method adopted whole, including parts no question needs.
-- Method names in the context file that the structure doesn't reflect.
+- Method names in the base's skill that the structure doesn't reflect.
 
 Next: [structure](structure.md). [Examples](examples.md) shows how different surveys lead to different choices.

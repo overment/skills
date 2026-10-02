@@ -16,6 +16,6 @@ Open this when starting a base, or when an existing one no longer fits its use. 
 5. **Decay:** what goes stale (prices, people, procedures) and what doesn't (history, principles).
 6. **Medium and constraints:** where the base lives, how agents reach it, and what can't change, such as privacy, sync or team habits.
 
-Summarize the answers, with the questions verbatim. The summary opens the base's [context](context.md) file.
+Summarize the answers, with the questions verbatim. The summary opens the base's [skill](instructions.md).
 
 Next: [methods](methods.md).

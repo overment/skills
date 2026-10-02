@@ -1,16 +1,16 @@
 ---
 name: knowledge
 description: >-
-  Designs and evolves knowledge bases that agents maintain: notes vaults, second brains, team wikis and handbooks, research archives, agent memory. It derives the structure, note types and conventions from what the base must answer, and leaves the base a context file and checks so later agents keep it consistent, from a few notes to hundreds of thousands. Use when asked to start, organize, restructure, scale or clean up such a base, or to choose where it should live (Markdown, Obsidian, Notion, a graph database). Not for a codebase's CLAUDE.md or AGENTS.md, retrieval or vector-search pipelines, writing a single note, answering questions from an existing base, or diagrams of it.
+  Designs and evolves knowledge bases that agents maintain: notes vaults, second brains, team wikis and handbooks, research archives, agent memory. It derives the structure, note types and conventions from what the base must answer, and leaves the base an agent skill of its own, with checks, so later agents keep it consistent, from a few notes to hundreds of thousands. Use when asked to start, organize, restructure, scale or clean up such a base, to write the instructions its agents follow, or to choose where it should live (Markdown, Obsidian, Notion, a graph database). Not for a codebase's CLAUDE.md, AGENTS.md or skills, retrieval or vector-search pipelines, writing a single note, answering questions from an existing base, or diagrams of it.
 license: MIT
 metadata:
   author: overment
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Knowledge
 
-The bases this skill builds are kept by agents working in separate sessions. Without a shared design, each session invents its own structure, and the base decays into duplicates, filler and orphans. Your job is to design the environment the base grows in: its structure, its note types, and a context file that lets any later agent keep it the same way without this skill.
+The bases this skill builds are kept by agents working in separate sessions. Without a shared design, each session invents its own structure, and the base decays into duplicates, filler and orphans. Your job is to design the environment the base grows in: its structure, its note types, and the base's skill, an Agent Skill of its own that lets any later agent keep it the same way without this one.
 
 ## Recall before you design
 
@@ -45,10 +45,10 @@ Any structure that passes them is fine.
 
 - **Filing** (card sorting): ten items each have exactly one obvious home and type. Use real ones, plus a few kinds the material doesn't contain yet.
 - **Finding** (tree testing): each survey question leads from the entry point to its answer in a few steps.
-- **Cold start:** an agent given the base, with no briefing beyond its context file, passes both tests. Use a fresh subagent or session when you can. Otherwise read only the context file, file five items, answer three survey questions, and list every guess you had to make.
+- **Cold start:** a fresh agent that has only the base's skill loads it unprompted for a survey question and a new item, then passes both tests. Use a fresh subagent or session when you can. Otherwise read only the base's skill, file five items, answer three survey questions, and list every guess you had to make.
 - **Load:** when the base will grow past a few thousand notes, run the finding test on a copy grown to that size ([scale](references/scale.md)).
 
-For Markdown bases, `scripts/check.ts` checks links, required fields and drift. The base keeps its own copy; [upkeep](references/upkeep.md) says how and when to run it.
+For Markdown bases, `scripts/check.ts` checks links, required fields and drift. The base's skill carries its own copy; [upkeep](references/upkeep.md) says how and when to run it.
 
 ## Nodes
 
@@ -61,19 +61,19 @@ Open only what the task needs.
 | [structure](references/structure.md) | choosing the medium, layout and naming |
 | [templates](references/templates.md) | a kind of note recurs |
 | [content](references/content.md) | deciding what goes in and how it's written |
-| [context](references/context.md) | writing the files later agents read first |
+| [instructions](references/instructions.md) | writing the base's skill, which later agents work from |
 | [upkeep](references/upkeep.md) | checking, cleaning or reshaping an existing base |
 | [scale](references/scale.md) | the base will grow past a few thousand notes |
 | [examples](references/examples.md) | you want to see different needs lead to different shapes |
 
-A new base usually walks survey through context in order, then upkeep for the checks. "Our tags are a mess" starts at upkeep.
+A new base usually walks survey through instructions in order, then upkeep for the checks. "Our tags are a mess" starts at upkeep.
 
 ## Asking and acting
 
-- Read the conversation, the existing files and the sources before asking. Ask at most three questions in one message, each with your guess and the default you'll use. If nobody answers, go ahead on the defaults, and record the open questions in the base so a later session asks them again.
+- Read the conversation, the existing files and the sources before asking. Ask at most three questions in one message, each with your guess and the default you'll use. If nobody answers, go ahead on the defaults, and record the open questions in the base's skill so a later session asks them again.
 - In a new base, create freely. In an existing one, show a plan and get a yes before moving, renaming, merging or rewriting anything; then work in small batches and check after each.
 - Archive instead of deleting: move the note into `archive/`, which `check.ts` exempts, so old links still resolve. The exception is content that must be gone, such as a request to forget, personal data or a secret. Delete it everywhere it's copied, including rollups and derived indexes, and fix the links.
 
 ## Report
 
-Say what you built or changed, with paths; the methods you chose and why; the test and check results; what you left out on purpose; and your assumptions, open questions first.
+Say what you built or changed, with paths, and the description of the base's skill; the methods you chose and why; the test and check results; what you left out on purpose; and your assumptions, open questions first.

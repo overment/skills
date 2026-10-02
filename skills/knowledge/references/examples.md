@@ -13,7 +13,7 @@ Four bases whose surveys led to different shapes. None is a starting point to co
 
 - **Questions:** How do I do X here? What's our policy on Y? Who owns Z? Why did we decide W?
 - **Methods:** Diátaxis, handbook-first, owners with review dates, ADRs.
-- **Shape:** one database, whose properties do the work of folders. `type` says what a reader wants: `how-to`, `reference`, `policy` or `decision`. `area` carries ownership. The start page is the context page, and each agent's instructions point to it.
+- **Shape:** one database, whose properties do the work of folders. `type` says what a reader wants: `how-to`, `reference`, `policy` or `decision`. `area` carries ownership. The start page is the writer's guide, and the base's skill links to it.
 - **Types:** the contracts are required properties (`owner` and `review_by` on every type but `decision`, which has `date` and `status`), plus a "How we write" page.
 
 ## An assistant's memory of one person · thousands of notes, written only by the agent
