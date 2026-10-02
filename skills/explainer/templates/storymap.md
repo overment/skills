@@ -3,7 +3,7 @@ title: Online grocery ordering
 chrome: title
 ---
 
-[The first release](#grocery-map-mvp) is a thin slice through every step, so a shopper can find, pay for and receive groceries end to end, with [next-day delivery](#grocery-map-next-day-slots-only) as the only option.
+[The first release](#grocery-map-mvp) is a thin slice through every step. A shopper can find, pay for and receive groceries end to end, with [next-day delivery](#grocery-map-next-day-slots-only) as the only option.
 
 ```storymap
 id: grocery-map

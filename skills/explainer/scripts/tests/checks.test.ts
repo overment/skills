@@ -103,6 +103,16 @@ describe("lint", () => {
     expect(rules(check([fig("Checks every token.")]))).not.toContain("about-repeats");
   });
 
+  test("sentence-long: a sentence over 25 words is flagged in explanations, notes and prose (ASD-STE100)", () => {
+    const long = "This part reads every request, checks the token against the cache, writes a line to the audit log and then passes the request to the service behind it.";
+    const split = "This part reads every request. It checks the token against the cache and writes a line to the audit log.";
+    const withAbout = (about: string) => figure({ nodes: [node("a", { about }), node("b", { at: [2, 0] })] });
+    expect(rules(check([withAbout(long)]))).toContain("sentence-long");
+    expect(rules(check([withAbout(split)]))).not.toContain("sentence-long");
+    expect(rules(check([figure({ notes: [{ on: ["a"], text: long }] })]))).toContain("sentence-long");
+    expect(rules(check([figure()], [{ kind: "markdown", text: long, line: 1 }]))).toContain("sentence-long");
+  });
+
   test("label-duplicate is case-insensitive", () => {
     const fig = (second: string) => figure({ nodes: [node("a", { label: "Orders" }), node("b", { at: [2, 0], label: second })] });
     expect(rules(check([fig("orders")]))).toContain("label-duplicate");

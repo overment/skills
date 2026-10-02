@@ -41,6 +41,7 @@ Checks for every scenario:
 - Budgets hold per figure: at most 9 nodes, 12 connectors and 2 focal parts.
 - No node `about` is missing or repeats its label. No connector label is over 3 words.
 - The first paragraph states the conclusion (BLUF).
+- The text reads as plain technical English: one fact or one instruction per sentence, the active voice, and no sentence over 25 words (`check` shows no `sentence-long`).
 - The final message lists what was simplified, merged or cut.
 - No hand-written SVG, inline styles or colours in the document.
 - The run without explainer does worse on at least half the scenarios: longer prose, inconsistent hand-drawn diagrams, or no captures. If it doesn't, the skill isn't earning its context.

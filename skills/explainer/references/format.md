@@ -407,6 +407,7 @@ The default theme: `unit` 8, cell 160 × 64, gaps 104 (x) and 48 (y), padding 32
 | Node `sub` | Shorter than the label. A port, version or count |
 | Connector label | At most 3 words and 18 characters |
 | `about` | 1–2 sentences. Must not start by repeating the label |
+| Any sentence | 25 words, 20 in an instruction. See [writing.md](writing.md#plain-technical-english) |
 
 ## Lint rules
 
@@ -427,6 +428,7 @@ The default theme: `unit` 8, cell 160 × 64, gaps 104 (x) and 48 (y), padding 32
 | `about-missing` | A node has no `about` |
 | `about-repeats` | An `about` starts with the label |
 | `about-thin` | A node or actor `about` has fewer than 12 words: it names the part again rather than explain it |
+| `sentence-long` | A sentence in prose, an `about`, a note, a step note, a caveat, a point or a definition has more than 25 words (ASD-STE100 allows 20 in an instruction, 25 in a description) |
 | `label-duplicate` | Two elements show the same label |
 | `route` | A connector couldn't be routed cleanly. Move a node |
 | `note-target` | A note's `on` or a story step points at an id that doesn't exist |

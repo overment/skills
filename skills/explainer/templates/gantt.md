@@ -3,7 +3,7 @@ title: Launch plan
 chrome: title
 ---
 
-The public launch on May 23 holds only if the [security review](#launch-security-review) ends on time: it is the one open task on the [critical path](#launch-critical), so it has no slack.
+The public launch on May 23 holds only if the [security review](#launch-security-review) ends on time. It is the one open task on the [critical path](#launch-critical), so it has no slack.
 
 ```gantt
 id: launch

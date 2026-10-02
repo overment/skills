@@ -4,7 +4,7 @@ chrome: none
 width: wide
 ---
 
-The [App](#app) ships as three parts that deploy separately. The [Web client](#web) holds every screen and no secrets, the [API](#api) holds sign-in and billing, and the [Workers](#workers) send email after a request is already answered.
+The [App](#app) ships as three parts that deploy separately. The [Web client](#web) holds every screen and no secrets. The [API](#api) holds sign-in and billing. The [Workers](#workers) send email after a request is already answered.
 
 ```figure
 id: app-tree

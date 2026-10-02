@@ -5,7 +5,7 @@ description: >-
 license: MIT (bundled Geist fonts under OFL-1.1, see assets/fonts/OFL.txt)
 metadata:
   author: overment
-  version: "0.4.2"
+  version: "0.5.0"
 ---
 
 # Explainer
@@ -92,6 +92,7 @@ Grid layouts and their anti-patterns are in [references/layouts.md](references/l
 - **BLUF (inverted pyramid).** The first paragraph states the conclusion a reader would take away after reading everything. The figure proves it, and sections add detail in falling order of importance. A reader who stops after any section should still be right.
 - **Deletion first.** A figure is done when nothing more can be removed, not when nothing more can be added. Budgets per figure are 9 nodes, 12 connectors and 2 focal parts. Over budget, split into an overview plus a detail figure; never shrink. Walk through the per-figure pass in [references/writing.md](references/writing.md).
 - **Progressive disclosure.** The canvas carries names only: a short label, maybe a `sub`, and a connector label only where the arrow isn't obvious. Meaning lives in `about` and shows in the card on click, next to computed facts. The prose tells the story, the reading panel proves it note by note, and [interactions](references/interactions.md) let the reader dig.
+- **Plain technical English (ASD-STE100).** Write labels, `about` texts, notes and prose about 80% of the way to STE: one fact or one instruction per sentence, the active voice, simple tenses, short noun clusters, one word per meaning. `check` warns on any sentence over 25 words (`sentence-long`). The rules and examples are in [references/writing.md](references/writing.md).
 - **Trust.** Markdown text is escaped (raw HTML shows as text, only http(s), mailto and `#` links survive), so text lifted from code or conversations is safe in labels, prose and `about`. A `widget` body is code that runs in every reader's browser and in the Chrome that `shot`, `audit` and `export` start: never put untrusted text there.
 - **One source of emphasis.** Mark at most two parts `focal`: the accent means "the author's point". Selection is an ink ring, never accent. Focus comes from dimming everything else, not from making the target louder. Never add colour, bold or extra boxes to make something stand out.
 

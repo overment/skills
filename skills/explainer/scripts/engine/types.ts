@@ -368,6 +368,8 @@ export const LINT_RULES = {
   "edge-label": "Connector label is over 3 words or 18 characters.",
   "about-missing": "Node has no `about`; the detail panel will be empty.",
   "about-repeats": "`about` starts by repeating the label.",
+  "about-thin": "A node or actor `about` has fewer than 12 words; it names the part again rather than explain it.",
+  "sentence-long": "A sentence has more than 25 words; split it so each carries one fact or one instruction (ASD-STE100).",
   "label-duplicate": "Two elements share the same visible label.",
   "route": "A connector could not be routed cleanly; move a node.",
   "ref-focal": "A figure's focal element is never linked from prose or a note.",

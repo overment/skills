@@ -12,7 +12,7 @@ chips:
 status: { text: "Landed with review PASS · deploy check HTTP 200", tone: ok }
 ```
 
-A [429](#e429) now ends the turn at once instead of [retrying out of sight](#retry), and [Stop](#stops) answers on the click: a [repeat press](#copy-repeat) went from 0.73–1.72 s to 0.8 ms.
+A [429](#e429) now ends the turn at once instead of [retrying out of sight](#retry). [Stop](#stops) answers on the click: a [repeat press](#copy-repeat) went from 0.73–1.72 s to 0.8 ms.
 
 ```events
 id: trace

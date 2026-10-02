@@ -3,7 +3,7 @@ title: The testing pyramid
 chrome: title
 ---
 
-Most of the safety net should be [fast unit tests at the base](#test-pyramid-unit), with only a [few slow end-to-end tests at the top](#test-pyramid-end-to-end) to prove the main journeys still work.
+Most of the safety net should be [fast unit tests at the base](#test-pyramid-unit). Only a [few slow end-to-end tests at the top](#test-pyramid-end-to-end) prove that the main journeys still work.
 
 ```pyramid
 id: test-pyramid

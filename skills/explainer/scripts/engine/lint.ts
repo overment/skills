@@ -36,6 +36,7 @@ export function lint(doc: ParsedDoc, blocks: Block[], theme: Theme, known: Itera
   }
   const ids = lintRefs(doc, blocks, emit, known);
   lintReading(doc, blocks, ids, emit);
+  lintSentences(doc, blocks, emit);
   return found;
 }
 
@@ -212,6 +213,50 @@ function lintClaims(segments: Segment[], emit: Emit) {
       }
     }
   });
+}
+
+/** ASD-STE100 allows 20 words in an instruction and 25 in a description; one limit keeps the check simple. */
+const STE_SENTENCE_WORDS = 25;
+
+/** String fields that hold sentences the author writes for readers. A context block's message `text` is quoted model input, not prose. */
+const PROSE_KEYS = new Set(["about", "caveat", "note", "markdown"]);
+
+function lintSentences(doc: ParsedDoc, blocks: Block[], emit: Emit) {
+  const measure = (text: string, line: number) => {
+    for (const sentence of sentences(text)) {
+      const words = sentence.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+      if (words > STE_SENTENCE_WORDS)
+        emit("sentence-long", "warn", `"${sentence.length > 70 ? `${sentence.slice(0, 69)}…` : sentence}" has ${words} words; split it so each sentence carries one fact or one instruction (at most ${STE_SENTENCE_WORDS}; ASD-STE100 keeps instructions to 20).`, line);
+    }
+  };
+  for (const block of blocks) for (const text of authoredText(block)) measure(text, block.line);
+  for (const seg of markdownSegments(doc.segments))
+    for (const { line, offset } of proseLines(seg.text)) if (!/^\s*\|/.test(line)) measure(line, seg.line + offset);
+}
+
+/** Every sentence the author wrote inside a block: explanations, notes, step notes, caveats, points and definitions. */
+function authoredText(value: unknown, out: string[] = [], depth = 0): string[] {
+  if (depth > 6 || !value || typeof value !== "object") return out;
+  if (Array.isArray(value)) {
+    for (const item of value) authoredText(item, out, depth + 1);
+    return out;
+  }
+  const strings = (v: unknown) => (Array.isArray(v) ? v : Object.values(v as object)).flatMap((x) =>
+    typeof x === "string" ? [x] : x && typeof x === "object" && typeof (x as { text?: unknown }).text === "string" ? [(x as { text: string }).text] : []);
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof v === "string") {
+      if (PROSE_KEYS.has(key)) out.push(v);
+    } else if (v && typeof v === "object" && ["notes", "points", "terms"].includes(key)) {
+      // Reading notes ({ on, text }), scene notes (node id → line), compare points and glossary definitions.
+      out.push(...strings(v));
+    } else authoredText(v, out, depth + 1);
+  }
+  return out;
+}
+
+function sentences(text: string): string[] {
+  const plain = text.replace(/`[^`]*`/g, "x").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_]/g, "");
+  return plain.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
 }
 
 function markdownSegments(segments: Segment[]): { text: string; line: number }[] {

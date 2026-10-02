@@ -11,6 +11,22 @@ The canvas is for names. The card is for meaning. The prose is for the story. Mo
 - **No chrome.** No boxes around the figure, no "Figure 1", no header saying "Architecture diagram". The page title and the first sentence do that work.
 - **Mono for identifiers.** Events, states, ports and field names go in `sub` or connector labels. They're not quoted, because the typeface does the quoting.
 
+## Plain technical English
+
+Write every sentence about 80% of the way to ASD-STE100, the controlled language of aerospace maintenance manuals. You know the specification. Apply its core rules, and relax one only where a strict reading would make the text less clear.
+
+- **One sentence, one fact or one instruction.** Keep an instruction to 20 words and a description to 25. `check` warns above 25 (`sentence-long`).
+- **Imperative for instructions, active voice for descriptions.** "The gateway checks the token", not "The token is checked by the gateway".
+- **Simple tenses.** Use the present, the simple past and the future. Avoid "-ing" forms, except in names.
+- **Short noun clusters.** Use three words at most. Break a longer one with "of" or a relative clause.
+- **Keep the small words.** Write "the", "a" and "that" in sentences; telegraphic text is for labels only.
+- **Warnings: the instruction first, then the reason.** "Do not edit the frame. The next build overwrites it."
+
+| Before | After |
+|---|---|
+| "The token, which is issued by Auth and cached for fifteen minutes to reduce load, is checked by the gateway before routing." | "The gateway checks the token before it routes the request. Auth issues the token. The cache keeps it for 15 minutes to reduce load." |
+| "Make sure to avoid editing the frame by hand since rebuilding overwrites it." | "Do not edit the frame by hand. The next build overwrites it." |
+
 ## Before and after
 
 | Before | After | Why |

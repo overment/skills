@@ -7,7 +7,7 @@ shots:
   - sel=checkout-order->checkout-lineitem
 ---
 
-An [Order](#checkout-order) [owns its line items outright](#checkout-order->checkout-lineitem), but each [Payment](#checkout-payment) [stands on its own](#checkout-order->checkout-payment), so a failed charge stays on record after the order is cancelled.
+An [Order](#checkout-order) [owns its line items outright](#checkout-order->checkout-lineitem). Each [Payment](#checkout-payment) [stands on its own](#checkout-order->checkout-payment), so a failed charge stays on record after the order is cancelled.
 
 ```uml
 id: checkout

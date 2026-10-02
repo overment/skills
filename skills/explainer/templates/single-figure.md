@@ -5,7 +5,7 @@ mode: auto
 width: wide
 ---
 
-[Checkout](#checkout) is the one part that talks to the [payment provider](#checkout->payments), and it only [queues the receipt](#checkout->receipts), so a slow mail server never holds up a payment.
+[Checkout](#checkout) is the one part that talks to the [payment provider](#checkout->payments). It only [queues the receipt](#checkout->receipts), so a slow mail server never holds up a payment.
 
 ```figure
 id: checkout

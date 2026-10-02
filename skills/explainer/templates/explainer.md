@@ -39,7 +39,7 @@ notes:
 
 ## 02 · Who can change what
 
-Each stage allows fewer edits than the one before it. The [Writing app](#draft) can still [change the headline](#change-headline.draft), the [Review queue](#review) can only [partly edit the text](#edit-text.review), and the [Publisher](#publish) can only [schedule](#schedule.publish) or [take a page down](#take-down.publish). Select a column to find that stage in the diagram, or a cell for the rule in words.
+Each stage allows fewer edits than the one before it. The [Writing app](#draft) can still [change the headline](#change-headline.draft). The [Review queue](#review) can only [partly edit the text](#edit-text.review). The [Publisher](#publish) can only [schedule](#schedule.publish) or [take a page down](#take-down.publish). Select a column to find that stage in the diagram, or a cell for the rule in words.
 
 ```matrix
 id: permissions
