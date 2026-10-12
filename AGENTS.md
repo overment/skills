@@ -15,6 +15,6 @@ This is a public repository of Agent Skills. Everything committed here is publis
 ## Checks before committing
 
 - `name` is 1–64 lowercase letters, digits and single hyphens, and matches the folder.
-- `description` is at most 1,024 characters, third person, with no XML tags, and ends with a "Not for…" boundary.
+- `description` is one or two sentences of about 250 characters at most, third person, with no XML tags and no lists of examples. A "Not for…" clause only for a real near miss.
 - Every file the body links to exists.
 - Run the skill's evals in a fresh session when its description or behaviour changed.

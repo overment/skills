@@ -38,7 +38,8 @@ Checks for every scenario:
 
 - No more than three questions, in one message.
 - No motive presented as fact without a source.
-- Whatever was built meets the spec: the name matches its folder, and the description is at most 1,024 characters, third person, and ends with a "Not for…" line.
+- Whatever was built meets the spec: the name matches its folder, and the description is one or two sentences of about 250 characters at most, third person, with no lists of examples.
+- The body has no line whose behaviour the run without the skill already showed, and doesn't restate the tool's `--help`.
 - B7 steers with a named concept or guiding questions rather than a rule list. B6 keeps its parsing in a script.
 - B6 and B7 produce visibly different shapes. If every skill comes out with the same headings, the shaping failed.
 - The run without skill-shaper does worse on at least half the scenarios. If it doesn't, skill-shaper isn't adding enough to justify its context.
