@@ -423,10 +423,8 @@ function selectFragments(manifest, only, force) {
 async function commandSynth(dir, flags) {
   const manifest = readManifest(dir);
   manifest.dir = dir;
-  if (typeof flags.voice === "string" && flags.voice !== manifest.tts.voiceId) {
-    manifest.tts.voiceId = flags.voice;
-    console.log(`Voice set to ${flags.voice}. Audio made with another voice is now stale.`);
-  }
+  // A new voice makes existing audio stale-settings, so the plan below includes it.
+  if (typeof flags.voice === "string") manifest.tts.voiceId = flags.voice;
   const targets = selectFragments(manifest, typeof flags.only === "string" ? flags.only : null, flags.force === true);
   if (targets.length === 0) {
     console.log("Nothing to generate: every selected fragment has current audio.");
@@ -444,7 +442,7 @@ async function commandSynth(dir, flags) {
   const key = apiKey();
   mkdirSync(join(dir, "fragments"), { recursive: true });
   const hash = ttsHash(manifest.tts);
-  console.log(`Generating ${plan}.`);
+  console.log(`Generating ${plan} with ${manifest.tts.model}, voice ${manifest.tts.voiceId}.`);
   let billed = 0;
   for (const target of targets) {
     const index = manifest.fragments.indexOf(target);

@@ -23,10 +23,10 @@ The key comes from `ELEVENLABS_API_KEY`, or from `~/.config/elevenlabs/api_key` 
 
 Run the script with `node` or `bun`. `<dir>` is the output folder: `audio/` next to the article unless the user names another place.
 
-1. Write `<dir>/script.md` in the article's language (see "Write for the ear"). `# Title` and `## Section` lines are not spoken: they name the audio and its chapters. Blank lines separate paragraphs. `<!-- notes -->` are not spoken.
+1. Write `<dir>/script.md` in the article's language (see "Write for the ear"). `# Title` and `## Section` lines are not spoken: they name the audio and its chapters. Text before the first `##` becomes an opening chapter named after the title. A heading that only holds a list, such as an outline, folds into the section around it. Blank lines separate paragraphs. `<!-- notes -->` are not spoken.
 2. `split <dir> --language <code> --source <article>`. Fix every `blocked` line. Check each `warning`, and change the text when the warning is right.
 3. Ask for the voice if the user has not named one. `voices` lists the voices on the account.
-4. Sample: pick the section with the hardest content (terms, numbers, a figure) under 3,000 characters. Run `synth <dir> --voice <id> --only <section-id> --yes`, then `merge <dir> --partial`, which writes `sample.mp3`.
+4. Sample: pick the hardest content (terms, numbers, a figure), at most 3,000 characters: one section, or some fragments of a longer one. Run `synth <dir> --voice <id> --only <ids> --yes`, where `<ids>` are section ids (`s03`) or fragment ids (`s03-f01`). Then run `merge <dir> --partial`, which writes `sample.mp3`.
 5. Show the user the sample path, what to listen for, and the full cost: `synth <dir>` without `--yes` prints it. Wait for a yes.
 6. `synth <dir> --yes`, then `merge <dir>`. Report `audio.mp3`, the duration, and the billed characters.
 
@@ -38,7 +38,7 @@ The script is a new text for a listener, not the article without its marks. Pict
 
 Ask of each passage:
 
-- Does the listener know where they are? Open each section with its heading as a short spoken line. Before a list of three or more items, say how many there are.
+- Does the listener know where they are? Open with the title, and each section with its heading, as a short spoken line. Before a list of three or more items, say how many there are.
 - Does a sentence point at the page ("below", "this table", "click here")? Make it work without the page.
 - Is something read that nobody says aloud? File names, paths, commands and identifiers become the words people say: "the agents file", "the memory save tool". Keep the literal spelling only when the listener must type it.
 - Is there a parenthesis, or a label with a colon ("State: holds the thread")? Make it a sentence of its own ("State holds the thread"), or drop it.
@@ -54,13 +54,13 @@ Eleven v4 facts that change the text:
 
 ## Figures: say the point, not the picture
 
-Alt text describes a picture for someone who cannot see it, so it lists shapes, colours and positions. The listener needs what the figure means. Read the figure's alt text, its caption, and the paragraphs before and after it. If you can open the image, look at it. Authoring notes, such as drawing instructions in comments, can show the intent, but never read their wording.
+Alt text describes a picture for someone who cannot see it, so it lists shapes, colours and positions. The listener needs what the figure means. Read the figure's alt text, its caption (under the image or inside it), and the paragraphs before and after it. If you can open the image, look at it. Authoring notes, such as drawing instructions in comments, can show the intent, but never read their wording.
 
-Then decide what the text needs from the figure:
+Then ask what the walker would lose if the figure were skipped:
 
 - **Nothing**, because the text already says it: skip the figure, or give one bridging sentence.
-- **Its content**, because the text points at it ("like this:") or builds on it: give the point in one sentence, then only the facts that the following paragraphs use, as a flow of who does what and in what order. Two to four sentences.
-- **Its data** (a chart): the trend or the comparison, and the one or two numbers the text uses.
+- **Facts**, because the text points at the figure ("like this:"), builds on it, or does not have what the figure shows (an example, a grouping): give the point in one sentence, then only those facts, as a flow of who does what and in what order. Two to four sentences. A figure that maps the whole article may need a few more.
+- **Data** (a chart): the trend or the comparison, and the one or two numbers the text uses.
 
 Leave out colours, shapes, arrows, positions, line styles, legends, and labels that repeat the text. Open with a light cue, so the reader can find the figure: "The diagram here shows…". Do not use "as you can see".
 
