@@ -33,3 +33,14 @@ Read this when a limit, a price or an API behaviour matters, or when ElevenLabs 
 - Loudness: two-pass `loudnorm`. The first pass measures, and the second applies the measured values with `linear=true`. `dual_mono=true` measures a mono file as it sounds on two speakers. [ffmpeg filters: loudnorm](https://ffmpeg.org/ffmpeg-filters.html#loudnorm)
 - Targets: Apple recommends −16 LKFS ±1 dB and a true peak of at most −1 dBFS, measured before encoding. It also recommends 96 to 128 kbps for mono MP3 at 44.1 or 48 kHz. The usual convention for a plain mono file is −19 LUFS, which is what −16 measured as dual mono gives. [Apple Podcasts audio requirements](https://podcasters.apple.com/support/893-audio-requirements), [ITU-R BS.1770-5](https://www.itu.int/rec/R-REC-BS.1770-5-202311-I/en), [Descript: podcast loudness standard](https://www.descript.com/blog/article/podcast-loudness-standard-getting-the-right-volume)
 - Encoding: the MP3 muxer writes a Xing/LAME frame with the duration and the encoder delay, so decoders can drop the encoder's padding at the start. [ffmpeg formats: mp3](https://ffmpeg.org/ffmpeg-formats.html#mp3)
+
+## Observed on a real run
+
+Measurements, not documentation: one English article of 19,458 characters in 14 fragments, a premade British narration voice, `eleven_v4` with default settings, 22 October 2026.
+
+- Speech rate: 790 to 900 characters a minute, 832 overall. The documented "10,000 characters, about 10 minutes" was 20% short.
+- Billing: the `character-cost` header and the account history agreed. The API billed 8,563 characters for 19,458 sent (44%), on a Creator subscription.
+- Edge silence: 20 to 90 ms before the speech, 90 to 180 ms after it.
+- Pauses: a sentence end gave 0.3 to 0.6 s. A paragraph break added nothing. "…and MCP. Agents…" ran together with 50 ms between them; "…and the command line. Agents…" got 0.5 s.
+- Seed: with the same seed, a fragment with an added paragraph break came back as the same take, with the same length to the millisecond and the same pauses. The seed plus one gave a different take (63.44 s against 64.96 s).
+- Reading: LLM, API, AI, ID, UTC, GPT, MCP and CLI came out as letters, and JSON as a word. Numbers in digits came out right: "41 percent", "465 kilometers", "48,000 yen", "2,300 of its 3,000", "November 2022".

@@ -24,12 +24,12 @@ Commands
   synth  <dir>   Generate audio for fragments that have none or are stale.
                  Without --yes it only prints what it would send and the cost.
                  --only <id,id>     limit to these fragment ids (or section ids like s02)
-                 --force            regenerate even if audio is current
+                 --force            regenerate even if audio is current (a retake, with a new seed)
                  --voice <id>       set or change the voice
                  --yes              spend credits
   merge  <dir>   Join all fragments into audio.mp3 and write start times to the manifest.
                  --partial          join only fragments that have audio, into sample.mp3
-  status <dir>   List fragments and their audio state.
+  status <dir>   List fragments, their audio state, and the characters billed so far.
   voices         List the voices on the account (no cost).
 
 API key: ELEVENLABS_API_KEY, or the file ~/.config/elevenlabs/api_key.
@@ -38,8 +38,8 @@ API host: ELEVENLABS_API_BASE (default https://api.elevenlabs.io).
 
 const MODEL = "eleven_v4";
 const OUTPUT_FORMAT = "mp3_44100_128"; // allowed on every plan; merge re-encodes once
-const USD_PER_1K_CHARS = 0.08; // eleven_v4 API price, https://elevenlabs.io/pricing/api (October 2026)
-const CHARS_PER_MINUTE = 1000; // ElevenLabs: 10,000 characters is about 10 minutes
+const USD_PER_1K_CHARS = 0.08; // eleven_v4 list price per character, https://elevenlabs.io/pricing/api (October 2026)
+const CHARS_PER_MINUTE = 830; // eleven_v4 narration measured at 790 to 900 characters a minute (October 2026)
 const MODEL_CHAR_LIMIT = 10000;
 const STITCH_MAX_AGE_MS = 110 * 60 * 1000; // request ids work for 2 hours; keep a margin
 const MERGE = {
@@ -104,9 +104,10 @@ function writeManifest(dir, manifest) {
   renameSync(`${path}.tmp`, path);
 }
 
+// What the audio depends on, apart from its text. The seed is left out: a retake changes it on purpose.
 function ttsHash(tts) {
-  const { model, voiceId, voiceSettings, seed, languageCode, outputFormat } = tts;
-  return sha(JSON.stringify({ model, voiceId, voiceSettings, seed, languageCode, outputFormat })).slice(0, 16);
+  const { model, voiceId, voiceSettings, languageCode, outputFormat } = tts;
+  return sha(JSON.stringify({ model, voiceId, voiceSettings, languageCode, outputFormat })).slice(0, 16);
 }
 
 // Audio is current when it was made from this exact text with these exact settings.
@@ -328,7 +329,7 @@ function commandSplit(dir, flags) {
 
   const totalChars = fragments.reduce((sum, fragment) => sum + fragment.chars, 0);
   const manifest = {
-    version: 1,
+    version: 2,
     title: parsed.title ?? old?.title ?? null,
     source: typeof flags.source === "string" ? flags.source : old?.source ?? null,
     script: "script.md",
@@ -338,6 +339,7 @@ function commandSplit(dir, flags) {
     split: { targetChars: target, maxChars: max },
     merge: MERGE,
     estimate: { chars: totalChars, minutes: Number(minutes(totalChars)), usd: Number(usd(totalChars).toFixed(2)), usdPer1kChars: USD_PER_1K_CHARS },
+    billedChars: old?.billedChars ?? 0,
     output: null,
     sections,
     fragments,
@@ -346,7 +348,7 @@ function commandSplit(dir, flags) {
 
   const kept = fragments.filter((fragment) => fragment.audio).length;
   console.log(`${sections.length} sections, ${fragments.length} fragments, ${totalChars} characters (about ${minutes(totalChars)} min of audio).`);
-  console.log(`Full generation: about ${money(usd(totalChars))} at ${money(USD_PER_1K_CHARS)} per 1,000 characters.`);
+  console.log(`Full generation: about ${money(usd(totalChars))} at the list price of ${money(USD_PER_1K_CHARS)} per 1,000 characters. The API can bill fewer characters.`);
   if (kept > 0) console.log(`${kept} fragment(s) keep their audio because their text did not change.`);
   const sizes = fragments.map((fragment) => fragment.chars);
   console.log(`Fragment size: min ${Math.min(...sizes)}, max ${Math.max(...sizes)} characters.`);
@@ -446,11 +448,14 @@ async function commandSynth(dir, flags) {
   let billed = 0;
   for (const target of targets) {
     const index = manifest.fragments.indexOf(target);
+    // v4 returns almost the same take for the same seed and words, so a retake needs a new seed.
+    const retake = audioState(target, manifest) === "current";
+    const seed = retake ? ((target.audio.seed ?? manifest.tts.seed) + 1) % 4294967296 : manifest.tts.seed;
     const body = {
       text: target.text,
       model_id: manifest.tts.model,
       voice_settings: manifest.tts.voiceSettings,
-      seed: manifest.tts.seed,
+      seed,
       ...(manifest.tts.languageCode ? { language_code: manifest.tts.languageCode } : {}),
       ...stitching(manifest, index),
     };
@@ -461,17 +466,21 @@ async function commandSynth(dir, flags) {
       body: JSON.stringify(body),
     });
     const audio = Buffer.from(await response.arrayBuffer());
-    const file = `fragments/${target.id}.${target.textHash.slice(0, 8)}.mp3`;
+    const file = `fragments/${target.id}.${target.textHash.slice(0, 8)}.${seed}.mp3`;
     writeFileSync(join(dir, `${file}.tmp`), audio);
     renameSync(join(dir, `${file}.tmp`), join(dir, file));
     const characterCost = Number(response.headers.get("character-cost") ?? Number.NaN);
-    if (Number.isFinite(characterCost)) billed += characterCost;
+    if (Number.isFinite(characterCost)) {
+      billed += characterCost;
+      manifest.billedChars = (manifest.billedChars ?? 0) + characterCost;
+    }
     target.audio = {
       file,
       requestId: response.headers.get("request-id"),
       generatedAt: new Date().toISOString(),
       textHash: target.textHash,
       ttsHash: hash,
+      seed,
       characterCost: Number.isFinite(characterCost) ? characterCost : null,
       duration: probeDuration(join(dir, file)),
       bytes: audio.length,
@@ -479,9 +488,9 @@ async function commandSynth(dir, flags) {
     };
     const { dir: _dir, ...saved } = manifest;
     writeManifest(dir, saved);
-    console.log(`  ${target.id}  ${target.chars} chars  ${target.audio.duration} s`);
+    console.log(`  ${target.id}  ${target.chars} chars  ${target.audio.duration} s${retake ? `  retake, seed ${seed}` : ""}`);
   }
-  console.log(`Done. Billed characters reported by the API: ${billed || "not reported"}.`);
+  console.log(billed ? `Done. The API billed ${billed} characters, ${money(usd(billed))} at list price.` : "Done. The API did not report billed characters.");
 }
 
 async function commandVoices() {
@@ -611,6 +620,7 @@ function commandStatus(dir) {
   }
   console.log(Object.entries(counts).map(([state, n]) => `${n} ${state}`).join(", "));
   if (manifest.output) console.log(`Merged: ${manifest.output.file}, ${manifest.output.duration} s.`);
+  if (manifest.billedChars) console.log(`Billed so far, every take included: ${manifest.billedChars} characters, ${money(usd(manifest.billedChars))} at list price.`);
 }
 
 // ---------- main ----------

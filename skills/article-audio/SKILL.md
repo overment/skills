@@ -6,7 +6,7 @@ compatibility: Needs Node 18+ or Bun, ffmpeg with libmp3lame, and an ElevenLabs 
 disable-model-invocation: true
 metadata:
   author: overment
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Article Audio
@@ -28,9 +28,9 @@ Run the script with `node` or `bun`. `<dir>` is the output folder: `audio/` next
 3. Ask for the voice if the user has not named one. `voices` lists the voices on the account.
 4. Sample: pick the hardest content (terms, numbers, a figure), at most 3,000 characters: one section, or some fragments of a longer one. Run `synth <dir> --voice <id> --only <ids> --yes`, where `<ids>` are section ids (`s03`) or fragment ids (`s03-f01`). Then run `merge <dir> --partial`, which writes `sample.mp3`.
 5. Show the user the sample path, what to listen for, and the full cost: `synth <dir>` without `--yes` prints it. Wait for a yes.
-6. `synth <dir> --yes`, then `merge <dir>`. Report `audio.mp3`, the duration, and the billed characters.
+6. `synth <dir> --yes`, then `merge <dir>`. Report `audio.mp3`, its duration, and what the API billed: `status` prints the total for every take. The estimate prices every character sent at list price, and the API can bill fewer: one Creator account was billed 44% of the characters for `eleven_v4` in October 2026.
 
-To fix a fragment later, edit its text in `script.md` and run `split`: only the fragments whose text changed lose their audio. For a bad take of unchanged text, run `synth <dir> --only <id> --force --yes`. Then run `merge`. Both need the user's yes, as in step 5.
+To fix a fragment later, change its words in `script.md` and run `split`: only the fragments whose text changed lose their audio. Change words, not only line breaks: with the same seed, a fragment with an added paragraph break came back as the same take. For a bad take of unchanged text, run `synth <dir> --only <id> --force --yes`, which uses a new seed. Then run `merge`. Both need the user's yes, as in step 5.
 
 ## Write for the ear
 
@@ -46,7 +46,8 @@ Ask of each passage:
 
 Eleven v4 facts that change the text:
 
-- It has no SSML and no speed or style setting. Pauses come from sentence ends and paragraph breaks. The merge adds exact pauses between fragments and before each section, so do not add pause marks.
+- It has no SSML and no speed or style setting. Pauses come from punctuation: a sentence end gives about 0.3 to 0.6 s, and a paragraph break adds nothing. The merge adds exact pauses between fragments and before each section, so do not add pause marks.
+- A short line that ends in an acronym can run into the next sentence: "…and MCP. Agents may…" came out with 50 ms between them. End such a line on a plain word: "Finally, MCP and the command line."
 - Square brackets are audio tags, and a tag can come out as a sound effect. Text between slashes is read as IPA. `split` blocks both. The one exception is IPA written as `"/ˈwɜːrd/"` to fix a pronunciation.
 - Capitals add stress. Write an all-capital name as a normal word ("Apex", not "APEX"). Keep acronyms that people say as letters (API, LLM).
 - Write versions, codes and ranges as they are said: "season two, episode one", "version four", "from five to ten". In Polish, write a number as words when it takes a case ending ("w dwa tysiące dwudziestym szóstym roku"), and listen for it in the sample.
@@ -69,6 +70,6 @@ Script: "The diagram here shows one queue feeding three workers in parallel. Eac
 
 ## Fragments and output
 
-`split` makes the fragments: whole paragraphs, never across a `##` section, about 1,600 characters each (about a minute and a half) and never more than 2,500. That size is short enough to check by ear and cheap to regenerate (about $0.13), and long enough for natural phrasing. Request stitching keeps the voice even across fragment borders. Keep paragraphs under about 1,000 characters, so that `split` has places to cut.
+`split` makes the fragments: whole paragraphs, never across a `##` section, about 1,600 characters each (about two minutes) and never more than 2,500. That size is short enough to check by ear and cheap to regenerate (about $0.13 at list price), and long enough for natural phrasing. Request stitching keeps the voice even across fragment borders. Keep paragraphs under about 1,000 characters, so that `split` has places to cut.
 
 The player reads `audio.mp3` and `manifest.json`. The fields are in [references/manifest.md](references/manifest.md). Facts, prices and sources are in [references/sources.md](references/sources.md).
