@@ -48,6 +48,6 @@ Audio is current when `audio.textHash` equals `textHash` and `audio.ttsHash` mat
 
 ## Audio
 
-`audio.mp3`: MP3, mono, 44.1 kHz, 96 kbps CBR, ID3v2.3 title. Loudness is −16 LUFS measured as dual mono, which is −19 LUFS as plain mono, with a true peak of at most −1.5 dBTP. Each fragment is trimmed of the silence that the model leaves at its ends, faded for 8 ms at both ends, and joined with 0.5 s of silence, or 1.3 s before a new section.
+`audio.mp3`: MP3, mono, 44.1 kHz, 96 kbps CBR, ID3v2.3 title. Loudness is −16 LUFS measured as dual mono, which is −19 LUFS as plain mono, with a true peak of at most −1.5 dBTP. Each fragment is faded for 10 ms at its outer edges, trimmed of the silence that the model leaves at its ends, faded again for 8 ms at both ends, and joined with 0.5 s of silence, or 1.3 s before a new section.
 
 For an audit, compare `fragments[].text` with a transcript of `fragments[].audio.file`, or of the span from `start` to `end` in `audio.mp3`.

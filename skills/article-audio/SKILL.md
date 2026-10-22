@@ -6,7 +6,7 @@ compatibility: Needs Node 18+ or Bun, ffmpeg with libmp3lame, and an ElevenLabs 
 disable-model-invocation: true
 metadata:
   author: overment
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Article Audio

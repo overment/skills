@@ -43,7 +43,7 @@ API host: ELEVENLABS_API_BASE (default https://api.elevenlabs.io).
 const MODEL = "eleven_v4";
 const OUTPUT_FORMAT = "mp3_44100_128"; // allowed on every plan; merge re-encodes once
 const USD_PER_1K_CHARS = 0.08; // eleven_v4 list price per character, https://elevenlabs.io/pricing/api (October 2026)
-const CHARS_PER_MINUTE = 830; // eleven_v4 narration measured at 790 to 900 characters a minute (October 2026)
+const CHARS_PER_MINUTE = 900; // eleven_v4 narration measured at 830 and 990 characters a minute for two voices (October 2026)
 const MODEL_CHAR_LIMIT = 10000;
 const STITCH_MAX_AGE_MS = 110 * 60 * 1000; // request ids work for 2 hours; keep a margin
 const MERGE = {
@@ -563,11 +563,14 @@ async function commandVoices() {
 // ---------- merge ----------
 
 // Trims the silence the model leaves at both ends, so the gaps below are exact, and fades
-// 8 ms in and out so no join clicks.
+// 8 ms in and out so no join clicks. silenceremove judges the first samples on a part-filled
+// window, so a decoder step in the last millisecond stopped it; a 10 ms fade first removes that.
 const TRIM = [
+  "afade=t=in:d=0.01",
   "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.05",
   "afade=t=in:d=0.008",
   "areverse",
+  "afade=t=in:d=0.01",
   "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.12",
   "afade=t=in:d=0.008",
   "areverse",

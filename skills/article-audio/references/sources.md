@@ -34,13 +34,15 @@ Read this when a limit, a price or an API behaviour matters, or when ElevenLabs 
 - Targets: Apple recommends −16 LKFS ±1 dB and a true peak of at most −1 dBFS, measured before encoding. It also recommends 96 to 128 kbps for mono MP3 at 44.1 or 48 kHz. The usual convention for a plain mono file is −19 LUFS, which is what −16 measured as dual mono gives. [Apple Podcasts audio requirements](https://podcasters.apple.com/support/893-audio-requirements), [ITU-R BS.1770-5](https://www.itu.int/rec/R-REC-BS.1770-5-202311-I/en), [Descript: podcast loudness standard](https://www.descript.com/blog/article/podcast-loudness-standard-getting-the-right-volume)
 - Encoding: the MP3 muxer writes a Xing/LAME frame with the duration and the encoder delay, so decoders can drop the encoder's padding at the start. [ffmpeg formats: mp3](https://ffmpeg.org/ffmpeg-formats.html#mp3)
 
-## Observed on a real run
+## Observed on real runs
 
-Measurements, not documentation: one English article of 19,458 characters in 14 fragments, a premade British narration voice, `eleven_v4` with default settings, 22 October 2026.
+Measurements, not documentation, from two English articles on `eleven_v4`, 22 October 2026. Run A: 19,458 characters in 14 fragments, a premade British narration voice with default settings. Run B: 31,630 characters in 23 fragments, a professional voice clone with its stored settings (stability 0.8, similarity 1.0).
 
-- Speech rate: 790 to 900 characters a minute, 832 overall. The documented "10,000 characters, about 10 minutes" was 20% short.
-- Billing: the `character-cost` header and the account history agreed. The API billed 8,563 characters for 19,458 sent (44%), on a Creator subscription.
-- Edge silence: 20 to 90 ms before the speech, 90 to 180 ms after it.
+- Speech rate: run A 790 to 900 characters a minute, 832 overall; run B 932 to 1,081, 993 overall. The rate depends on the voice. The documented "10,000 characters, about 10 minutes" held for run B and was 20% short for run A.
+- Billing: the `character-cost` header and the account history agreed. The API billed 44% of the characters sent on both runs (8,563 of 19,458, and 13,916 of 31,630), on a Creator subscription.
+- Edge silence: run A 20 to 90 ms before the speech and 90 to 180 ms after it; run B up to 100 ms before and 110 to 650 ms after.
+- Level: run B's 23 fragments came back between −25.9 and −25.2 LUFS before normalisation, so the level did not jump at the joins.
+- Decoder step: one fragment of run B ended in a 0.7 ms step to −41 dBFS. `silenceremove` judges the first samples on a part-filled window, so it stopped there and kept 0.4 s of tail; a longer window or median detection did not help, and `start_duration` cut 50 ms of speech at each end. A 10 ms fade before the trim removed the step and changed no other fragment.
 - Pauses: a sentence end gave 0.3 to 0.6 s. A paragraph break added nothing. "…and MCP. Agents…" ran together with 50 ms between them; "…and the command line. Agents…" got 0.5 s.
 - Seed: with the same seed, a fragment with an added paragraph break came back as the same take, with the same length to the millisecond and the same pauses. The seed plus one gave a different take (63.44 s against 64.96 s).
 - Reading: LLM, API, AI, ID, UTC, GPT, MCP and CLI came out as letters, and JSON as a word. Numbers in digits came out right: "41 percent", "465 kilometers", "48,000 yen", "2,300 of its 3,000", "November 2022".
