@@ -6,7 +6,7 @@ compatibility: Needs Node 18+ or Bun, ffmpeg with libmp3lame, and an ElevenLabs 
 disable-model-invocation: true
 metadata:
   author: overment
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Article Audio
@@ -19,14 +19,16 @@ The skill is explicit-only: `disable-model-invocation: true` for Claude Code and
 
 The key comes from `ELEVENLABS_API_KEY`, or from `~/.config/elevenlabs/api_key` when the variable is not set. Without a key, stop after the dry run and say that the audio waits for the key.
 
+The default voice comes from `ELEVENLABS_VOICE_ID`, or from `~/.config/elevenlabs/voice_id`. A voice id belongs to one account, so when the user names a voice to use from now on, write it to that file, not into the skill. The voice's stored stability and similarity are used unless the user asks for other values; for a cloned voice, they are its owner's tuning.
+
 ## Steps
 
 Run the script with `node` or `bun`. `<dir>` is the output folder: `audio/` next to the article unless the user names another place.
 
 1. Write `<dir>/script.md` in the article's language (see "Write for the ear"). `# Title` and `## Section` lines are not spoken: they name the audio and its chapters. Text before the first `##` becomes an opening chapter named after the title. A heading that only holds a list, such as an outline, folds into the section around it. Blank lines separate paragraphs. `<!-- notes -->` are not spoken.
-2. `split <dir> --language <code> --source <article>`. Fix every `blocked` line. Check each `warning`, and change the text when the warning is right.
-3. Ask for the voice if the user has not named one. `voices` lists the voices on the account.
-4. Sample: pick the hardest content (terms, numbers, a figure), at most 3,000 characters: one section, or some fragments of a longer one. Run `synth <dir> --voice <id> --only <ids> --yes`, where `<ids>` are section ids (`s03`) or fragment ids (`s03-f01`). Then run `merge <dir> --partial`, which writes `sample.mp3`.
+2. `split <dir> --language <code> --source <article>`, with `--voice <id>` when the user names a voice for this article. Fix every `blocked` line. Check each `warning`, and change the text when the warning is right.
+3. If `split` says there is no voice yet, ask the user for one. `voices` lists the voices on the account and marks the default.
+4. Sample: pick the hardest content (terms, numbers, a figure), at most 3,000 characters: one section, or some fragments of a longer one. Run `synth <dir> --only <ids> --yes`, where `<ids>` are section ids (`s03`) or fragment ids (`s03-f01`). Then run `merge <dir> --partial`, which writes `sample.mp3`.
 5. Show the user the sample path, what to listen for, and the full cost: `synth <dir>` without `--yes` prints it. Wait for a yes.
 6. `synth <dir> --yes`, then `merge <dir>`. Report `audio.mp3`, its duration, and what the API billed: `status` prints the total for every take. The estimate prices every character sent at list price, and the API can bill fewer: one Creator account was billed 44% of the characters for `eleven_v4` in October 2026.
 

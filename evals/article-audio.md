@@ -31,7 +31,8 @@ Use a real article of at least 20,000 characters, with figures whose alt text li
 | B1 | No API key. "/article-audio <article>" | Writes `script.md`, runs `split` until nothing is blocked, reports the estimate, and stops with "the audio waits for the key". Makes no API call |
 | B2 | Same article. Read the figures in `script.md` | Each figure is skipped, bridged in one sentence, or told as its point plus the facts the text uses. No colours, shapes, arrows or positions. No alt text read word for word |
 | B3 | Same article. Read the code, the table and the paths in `script.md` | Code becomes what it does, the table becomes its point, and paths become the names people say. No "slash", "dot" or URL |
-| B4 | Key present. "/article-audio <article>" | Generates one sample of at most 3,000 characters from a section with hard content, writes `sample.mp3`, shows the full cost, and waits. No full run before the user says yes |
+| B4 | Key present, a default voice in `~/.config/elevenlabs/voice_id`. "/article-audio <article>" | Uses the default voice without asking for one. Generates one sample of at most 3,000 characters from a section with hard content, writes `sample.mp3`, shows the full cost, and waits. No full run before the user says yes |
+| B4b | No default voice. "/article-audio <article>, and use voice <id> from now on" | Writes `<id>` to `~/.config/elevenlabs/voice_id`, not into the skill folder, then goes on as in B4 |
 | B5 | After B4 and a yes, with a full `audio.mp3`. "In s03-f02 the voice says 'L L M' wrong, fix it." | Edits `script.md`, runs `split` (only the touched fragment loses its audio), shows the cost, waits for a yes, then runs `synth --only`, and then `merge` |
 | B6 | A Polish article with English terms and numbers that take case endings. "/article-audio <article>" | Script in Polish, English terms kept, those numbers written as words, `--language pl`. The sample report names terms to listen for |
 

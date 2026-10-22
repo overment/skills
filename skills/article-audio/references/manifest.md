@@ -17,13 +17,13 @@ A player needs only `audio.mp3` and `manifest.json`.
 
 ## manifest.json
 
-Times are seconds in `audio.mp3`, with three decimals. They are `null` until `merge` runs, and `merge` rewrites them each time. This is format `version` 2.
+Times are seconds in `audio.mp3`, with three decimals. They are `null` until `merge` runs, and `merge` rewrites them each time. This is format `version` 3.
 
 | Field | Meaning |
 |---|---|
 | `title` | From the `# Title` line of the script |
 | `source` | The article path given to `split --source` |
-| `tts` | `model`, `voiceId`, `voiceSettings` (stability, similarity_boost), `seed` (used for first takes), `languageCode`, `outputFormat`. One set for the whole file |
+| `tts` | `model`, `voiceId`, `voiceSettings` (stability, similarity_boost; `null` until the first `synth --yes` reads them from the voice), `settingsOverride` (values given to `split`, which win over the voice's), `seed` (used for first takes), `languageCode`, `outputFormat`. One set for the whole file |
 | `split` | `targetChars`, `maxChars` |
 | `merge` | Gaps (`gapSeconds` between fragments, `sectionGapSeconds` before a section), loudness target, sample rate, channels, bitrate |
 | `estimate` | `chars`, `minutes`, `usd` for generating every fragment once, at list price |

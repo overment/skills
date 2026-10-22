@@ -18,14 +18,16 @@ Commands
                  Keeps audio of fragments whose text did not change.
                  --target <chars>   fragment size to aim for (default 1600)
                  --max <chars>      hard limit per fragment (default 2500)
-                 --voice <id> --seed <n> --stability <0..1> --similarity <0..1>
+                 --voice <id>       the voice (default: the configured default voice)
+                 --stability <0..1> --similarity <0..1>   override the voice's stored settings
+                 --seed <n>
                  --language <code>  ISO 639-1 code, for example en or pl
                  --source <path>    the article the script came from (recorded only)
   synth  <dir>   Generate audio for fragments that have none or are stale.
                  Without --yes it only prints what it would send and the cost.
                  --only <id,id>     limit to these fragment ids (or section ids like s02)
                  --force            regenerate even if audio is current (a retake, with a new seed)
-                 --voice <id>       set or change the voice
+                 --voice <id>       change the voice
                  --yes              spend credits
   merge  <dir>   Join all fragments into audio.mp3 and write start times to the manifest.
                  --partial          join only fragments that have audio, into sample.mp3
@@ -33,6 +35,8 @@ Commands
   voices         List the voices on the account (no cost).
 
 API key: ELEVENLABS_API_KEY, or the file ~/.config/elevenlabs/api_key.
+Default voice: ELEVENLABS_VOICE_ID, or the file ~/.config/elevenlabs/voice_id.
+Voice settings: the voice's stored stability and similarity, read when synth first runs.
 API host: ELEVENLABS_API_BASE (default https://api.elevenlabs.io).
 `;
 
@@ -291,18 +295,26 @@ function commandSplit(dir, flags) {
   if (blocked > 0) fail(`${blocked} problem(s) in script.md; fix them and run split again`);
 
   const old = existsSync(join(dir, "manifest.json")) ? readManifest(dir) : null;
+  const fallback = defaultVoice();
+  const voiceId = typeof flags.voice === "string" ? flags.voice : old?.tts.voiceId ?? fallback?.id ?? null;
+  const settingsOverride = {
+    stability: numberFlag(flags, "stability", old?.tts.settingsOverride?.stability ?? null, 0, 1),
+    similarity_boost: numberFlag(flags, "similarity", old?.tts.settingsOverride?.similarity_boost ?? null, 0, 1),
+  };
+  // Settings read from this voice before stay; flags change them. A new voice reads its own at synth.
+  const keptSettings = old?.tts.voiceId === voiceId && old?.tts.voiceSettings ? old.tts.voiceSettings : null;
   const tts = {
     provider: "elevenlabs",
     model: MODEL,
-    voiceId: typeof flags.voice === "string" ? flags.voice : old?.tts.voiceId ?? null,
-    voiceSettings: {
-      stability: numberFlag(flags, "stability", old?.tts.voiceSettings.stability ?? 0.5, 0, 1),
-      similarity_boost: numberFlag(flags, "similarity", old?.tts.voiceSettings.similarity_boost ?? 0.75, 0, 1),
-    },
+    voiceId,
+    voiceSettings: keptSettings ? applyOverride(keptSettings, settingsOverride) : fullOverride(settingsOverride),
+    settingsOverride,
     seed: numberFlag(flags, "seed", old?.tts.seed ?? Math.floor(Math.random() * 4294967295), 0, 4294967295),
     languageCode: typeof flags.language === "string" ? flags.language : old?.tts.languageCode ?? null,
     outputFormat: OUTPUT_FORMAT,
   };
+  if (!voiceId) console.log("No voice yet: pass --voice <id>, or set a default in ELEVENLABS_VOICE_ID or ~/.config/elevenlabs/voice_id.");
+  else if (!flags.voice && !old?.tts.voiceId && fallback) console.log(`Voice: ${voiceId}, the default from ${fallback.from}.`);
 
   // Keep audio made from identical text, even when the fragment id moved.
   const oldByHash = new Map();
@@ -329,7 +341,7 @@ function commandSplit(dir, flags) {
 
   const totalChars = fragments.reduce((sum, fragment) => sum + fragment.chars, 0);
   const manifest = {
-    version: 2,
+    version: 3,
     title: parsed.title ?? old?.title ?? null,
     source: typeof flags.source === "string" ? flags.source : old?.source ?? null,
     script: "script.md",
@@ -364,6 +376,32 @@ function apiKey() {
     if (key) return key;
   }
   fail("no API key: set ELEVENLABS_API_KEY or write the key to ~/.config/elevenlabs/api_key");
+}
+
+// A voice id belongs to one account, so the default voice is the user's config, not the skill's.
+function defaultVoice() {
+  if (process.env.ELEVENLABS_VOICE_ID?.trim()) return { id: process.env.ELEVENLABS_VOICE_ID.trim(), from: "ELEVENLABS_VOICE_ID" };
+  const file = join(homedir(), ".config", "elevenlabs", "voice_id");
+  if (existsSync(file)) {
+    const id = readFileSync(file, "utf8").trim();
+    if (id) return { id, from: "~/.config/elevenlabs/voice_id" };
+  }
+  return null;
+}
+
+const NO_VOICE = "no voice: pass --voice <id>, or set a default in ELEVENLABS_VOICE_ID or ~/.config/elevenlabs/voice_id (the voices command lists them)";
+
+// eleven_v4 uses only stability and similarity. Keys stay in this order, because ttsHash hashes them.
+const settings = (stability, similarity_boost) => ({ stability, similarity_boost });
+const applyOverride = (base, override = {}) => settings(override.stability ?? base.stability, override.similarity_boost ?? base.similarity_boost);
+const fullOverride = (override = {}) => (override.stability != null && override.similarity_boost != null ? settings(override.stability, override.similarity_boost) : null);
+const describeSettings = (s) => (s ? `stability ${s.stability}, similarity ${s.similarity_boost}` : "the voice's stored settings");
+
+// A cloned voice's stored settings are its owner's tuning, so they are the default, not the API's.
+async function storedSettings(tts, key) {
+  const response = await request(`${apiBase()}/v1/voices/${encodeURIComponent(tts.voiceId)}/settings`, { headers: { "xi-api-key": key } });
+  const stored = await response.json();
+  return applyOverride(settings(stored.stability ?? 0.5, stored.similarity_boost ?? 0.75), tts.settingsOverride);
 }
 
 const apiBase = () => (process.env.ELEVENLABS_API_BASE ?? "https://api.elevenlabs.io").replace(/\/$/, "");
@@ -425,8 +463,20 @@ function selectFragments(manifest, only, force) {
 async function commandSynth(dir, flags) {
   const manifest = readManifest(dir);
   manifest.dir = dir;
+  const { tts } = manifest;
   // A new voice makes existing audio stale-settings, so the plan below includes it.
-  if (typeof flags.voice === "string") manifest.tts.voiceId = flags.voice;
+  if (typeof flags.voice === "string" && flags.voice !== tts.voiceId) {
+    tts.voiceId = flags.voice;
+    tts.voiceSettings = fullOverride(tts.settingsOverride);
+  }
+  tts.voiceId ??= defaultVoice()?.id ?? null;
+  const spend = flags.yes === true;
+  let key = null;
+  if (spend) {
+    if (!tts.voiceId) fail(NO_VOICE);
+    key = apiKey();
+    tts.voiceSettings ??= await storedSettings(tts, key);
+  }
   const targets = selectFragments(manifest, typeof flags.only === "string" ? flags.only : null, flags.force === true);
   if (targets.length === 0) {
     console.log("Nothing to generate: every selected fragment has current audio.");
@@ -434,17 +484,16 @@ async function commandSynth(dir, flags) {
   }
   const chars = targets.reduce((sum, fragment) => sum + fragment.chars, 0);
   const plan = `${targets.length} fragment(s), ${chars} characters, about ${money(usd(chars))} (${minutes(chars)} min)`;
-  if (flags.yes !== true) {
+  const voice = `voice ${tts.voiceId ?? "not set (pass --voice)"}, ${describeSettings(tts.voiceSettings)}`;
+  if (!spend) {
     for (const fragment of targets) console.log(`  ${fragment.id}  ${String(fragment.chars).padStart(5)} chars  ${audioState(fragment, manifest)}  ${fragment.heading}`);
-    console.log(`Dry run: would generate ${plan} with ${manifest.tts.model}, voice ${manifest.tts.voiceId ?? "not set (pass --voice)"}. Add --yes to spend.`);
+    console.log(`Dry run: would generate ${plan} with ${tts.model}, ${voice}. Add --yes to spend.`);
     return;
   }
-  if (!manifest.tts.voiceId) fail("no voice: pass --voice <id> (run the voices command to list them)");
 
-  const key = apiKey();
   mkdirSync(join(dir, "fragments"), { recursive: true });
-  const hash = ttsHash(manifest.tts);
-  console.log(`Generating ${plan} with ${manifest.tts.model}, voice ${manifest.tts.voiceId}.`);
+  const hash = ttsHash(tts);
+  console.log(`Generating ${plan} with ${tts.model}, ${voice}.`);
   let billed = 0;
   for (const target of targets) {
     const index = manifest.fragments.indexOf(target);
@@ -495,6 +544,7 @@ async function commandSynth(dir, flags) {
 
 async function commandVoices() {
   const key = apiKey();
+  const fallback = defaultVoice();
   let token = null;
   do {
     const query = new URLSearchParams({ page_size: "100", ...(token ? { next_page_token: token } : {}) });
@@ -502,10 +552,12 @@ async function commandVoices() {
     const page = await response.json();
     for (const voice of page.voices ?? []) {
       const labels = Object.values(voice.labels ?? {}).join(", ");
-      console.log(`${voice.voice_id}  ${voice.name}  (${voice.category}${labels ? `; ${labels}` : ""})`);
+      const mark = voice.voice_id === fallback?.id ? "  <- default" : "";
+      console.log(`${voice.voice_id}  ${voice.name}  (${voice.category}${labels ? `; ${labels}` : ""})${mark}`);
     }
     token = page.has_more ? page.next_page_token : null;
   } while (token);
+  console.log(fallback ? `Default voice: ${fallback.id}, from ${fallback.from}.` : "No default voice: set ELEVENLABS_VOICE_ID or ~/.config/elevenlabs/voice_id.");
 }
 
 // ---------- merge ----------
