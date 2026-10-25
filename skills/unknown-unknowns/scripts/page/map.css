@@ -1,0 +1,1347 @@
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-latin-ext-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Tokens: grays only. Each one holds its light and its dark value. */
+
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(oklch(0.985 0 none), oklch(0.165 0 none));
+  --surface: light-dark(oklch(1 0 none), oklch(0.2 0 none));
+  --ink-1: light-dark(oklch(0.21 0 none), oklch(0.96 0 none));
+  --ink-2: light-dark(oklch(0.42 0 none), oklch(0.78 0 none));
+  --ink-3: light-dark(oklch(0.58 0 none), oklch(0.56 0 none));
+  --edge: light-dark(oklch(0.86 0 none), oklch(0.31 0 none));
+  --edge-strong: light-dark(oklch(0.5 0 none), oklch(0.66 0 none));
+  --hairline: light-dark(oklch(0.91 0 none), oklch(0.27 0 none));
+  --tint: color-mix(in oklch, var(--ink-1) 5%, transparent);
+  --tint-strong: color-mix(in oklch, var(--ink-1) 9%, transparent);
+  --select: color-mix(in oklch, var(--ink-1) 8%, var(--bg)); /* opaque, so a label halo can match it */
+  --mark: color-mix(in oklch, var(--ink-3) 65%, var(--bg));
+  --raised: light-dark(oklch(1 0 none), oklch(0.29 0 none));
+  --shadow: light-dark(oklch(0 0 none / 0.08), oklch(0 0 none / 0.45));
+  --panel-width: min(25rem, calc(100vw - 24px));
+
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --radius: 10px;
+
+  interpolate-size: allow-keywords;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The theme setting. System leaves both schemes to the browser. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+html,
+body {
+  block-size: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  overflow: clip;
+  background: var(--bg);
+  color: var(--ink-1);
+  font: 450 14px/1.5 var(--sans);
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 2px;
+}
+
+/* Canvas */
+
+.canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas.is-panning,
+.canvas.is-panning .node {
+  cursor: grabbing;
+}
+
+/* The settled edges of one parent are one path, so the parts they share are drawn once. */
+.edge {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: 1.25;
+}
+
+/* The path from the goal to the current node: a darker copy of its edges on top. */
+.edge.is-path {
+  stroke: var(--edge-strong);
+}
+
+#path {
+  transition: opacity 200ms var(--ease-out);
+}
+
+.canvas:not([data-highlight="path"]) #path {
+  opacity: 0;
+}
+
+/* The journey setting: a thin line through the visited nodes in visit order. */
+.journey {
+  fill: none;
+  stroke: var(--edge-strong);
+  stroke-width: 1;
+  opacity: 0.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* Edges to faint nodes: while nodes are marked, or off the focused branch. */
+.edge.is-dim {
+  opacity: 0.3;
+}
+
+/* Cross links stay hidden. The links of the hovered node and of the selected node fade in.
+   With the setting "always", all links show faint, and those two show in full. */
+.link {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 2.5 3.5;
+  stroke-linecap: round;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--ease-out);
+}
+
+.link.is-shown {
+  opacity: 0.8;
+}
+
+.canvas[data-links="always"] .link {
+  opacity: 0.4;
+}
+
+.canvas[data-links="always"] .link.is-shown {
+  opacity: 0.8;
+}
+
+.canvas[data-links="always"] .link.is-dim {
+  opacity: 0.12;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.node:focus-visible {
+  outline: 2px solid transparent;
+}
+
+.node .hit {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1.5;
+}
+
+/* The selection mark is the focus mark of a node. This ring shows only if the two ever differ. */
+.node:focus-visible:not(.is-selected) .hit {
+  stroke: var(--ink-2);
+}
+
+/* The selected node sits on a quiet tint. A node marked for compare gets a hairline around it.
+   The ring, the hollow dot and the label halo take the tint, so none of them shows as a patch. */
+.node .mark {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1;
+}
+
+.node.is-selected .mark {
+  fill: var(--select);
+}
+
+.node.is-marked .mark {
+  stroke: var(--mark);
+}
+
+.node.is-selected .label {
+  stroke: var(--select);
+}
+
+.node.is-selected.is-suggested .dot,
+.node.is-selected .ring {
+  fill: var(--select);
+}
+
+/* While nodes are marked, the others draw faint. With focus on, so do the branches away from
+   the selected or the current node. */
+.node.is-dim {
+  opacity: 0.3;
+}
+
+.node .dot {
+  fill: var(--bg);
+  stroke: var(--ink-3);
+  stroke-width: 1.25;
+  transition: fill 200ms var(--ease-out), stroke 200ms var(--ease-out);
+}
+
+.node.is-visited .dot {
+  fill: var(--ink-2);
+  stroke: var(--ink-2);
+}
+
+.node.is-current .dot {
+  fill: var(--ink-1);
+  stroke: var(--ink-1);
+}
+
+/* The fill hides the end of the edge that comes in, so the edge stops at the ring. */
+.node .ring {
+  fill: var(--bg);
+  stroke: var(--ink-1);
+  stroke-width: 1;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 220ms var(--ease-out);
+}
+
+.node.is-current .ring {
+  opacity: 1;
+}
+
+/* A halo in the canvas color hides edges and links that pass under a label. It is always
+   exactly the canvas color, so it never shows as a box. */
+.node .label {
+  fill: var(--ink-2);
+  stroke: var(--bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  font: 450 13px var(--sans);
+  text-rendering: geometricPrecision;
+  transition: fill 200ms var(--ease-out), font-weight 200ms var(--ease-out);
+}
+
+.node.is-left .label {
+  text-anchor: end;
+}
+
+.node.is-suggested .label {
+  fill: var(--ink-3);
+}
+
+.node.is-selected .label {
+  fill: var(--ink-1);
+}
+
+.node.is-current .label {
+  fill: var(--ink-1);
+  font-weight: 560;
+}
+
+.node.is-root .label {
+  fill: var(--ink-1);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .node:hover .label {
+    fill: var(--ink-1);
+  }
+
+  .node.is-dim:hover {
+    opacity: 0.65;
+  }
+}
+
+@keyframes enter {
+  from { opacity: 0; }
+}
+
+.is-entering {
+  animation: enter 320ms var(--ease-out);
+}
+
+.is-leaving,
+.is-dim.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .node .ring {
+    scale: 0.6;
+    transition: opacity 220ms var(--ease-out), scale 260ms var(--ease-out);
+  }
+
+  .node.is-current .ring {
+    scale: 1;
+  }
+}
+
+/* Icon buttons */
+
+.icon-button {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.icon-button::after {
+  content: "";
+  position: absolute;
+  inset: min(0px, (100% - 44px) / 2);
+}
+
+.icon-button svg {
+  inline-size: 16px;
+  block-size: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.icon-button:active {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-button:hover {
+    background: var(--tint);
+    color: var(--ink-1);
+  }
+}
+
+/* Side panel */
+
+.panel {
+  position: fixed;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--panel-width);
+  max-block-size: calc(100dvh - 24px);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px var(--shadow), 0 12px 40px -8px var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms var(--ease-out), visibility 0s linear 240ms;
+}
+
+.panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 200ms var(--ease-out), visibility 0s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    translate: 10px 0;
+    transition: opacity 200ms var(--ease-out), translate 240ms var(--ease-out), visibility 0s linear 240ms;
+  }
+
+  .panel.is-open {
+    translate: 0 0;
+    transition: opacity 200ms var(--ease-out), translate 240ms var(--ease-out), visibility 0s;
+  }
+}
+
+.panel-head {
+  flex: none;
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  padding: 18px 14px 0 22px;
+}
+
+.panel-title {
+  flex: 1;
+  margin: 0;
+  padding-block-start: 2px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 22px 20px;
+}
+
+.panel-body > .prose {
+  margin-block-start: 14px;
+}
+
+.panel-state {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rendered Markdown */
+
+.prose {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.prose:empty {
+  display: none;
+}
+
+.prose > :first-child {
+  margin-block-start: 0;
+}
+
+.prose > :last-child {
+  margin-block-end: 0;
+}
+
+.prose :is(p, ul, ol, pre, blockquote) {
+  margin-block: 0 0.8em;
+}
+
+.prose :is(h3, h4, h5, h6) {
+  margin-block: 1.4em 0.45em;
+  color: var(--ink-1);
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.prose h3 {
+  font-size: 1.07em;
+}
+
+.prose strong {
+  color: var(--ink-1);
+  font-weight: 600;
+}
+
+/* Geist ships no italic here, so emphasis uses a slanted version of the upright face. */
+.prose :is(em, i) {
+  font-synthesis-style: auto;
+}
+
+.prose a {
+  color: var(--ink-1);
+  text-decoration-line: underline;
+  text-decoration-color: var(--edge);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .prose a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+.prose :is(ul, ol) {
+  padding-inline-start: 1.3em;
+}
+
+.prose li + li,
+.prose li > :is(ul, ol) {
+  margin-block-start: 0.3em;
+}
+
+.prose li > :is(ul, ol) {
+  margin-block-end: 0;
+}
+
+.prose li::marker {
+  color: var(--ink-3);
+}
+
+.prose code {
+  padding: 0.12em 0.36em;
+  border-radius: 5px;
+  background: var(--tint);
+  color: var(--ink-1);
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+.prose pre {
+  overflow-x: auto;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: var(--tint);
+  line-height: 1.55;
+}
+
+.prose pre code {
+  padding: 0;
+  background: none;
+  font-size: 12.5px;
+}
+
+.prose blockquote {
+  margin-inline: 0;
+  padding-inline-start: 0.9em;
+  border-inline-start: 2px solid var(--hairline);
+  color: var(--ink-3);
+}
+
+.prose hr {
+  margin-block: 1.4em;
+  border: 0;
+  border-block-start: 1px solid var(--hairline);
+}
+
+/* Attachments and related nodes in the panel */
+
+.section {
+  margin-block-start: 14px;
+}
+
+.section[hidden] {
+  display: none;
+}
+
+/* A line separates a list from the note or the list above it. */
+:is(.prose:not(:empty), .section:not([hidden])) ~ .section {
+  margin-block-start: 20px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--hairline);
+}
+
+.section-title {
+  margin: 0 0 6px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 450;
+}
+
+/* The negative end margin takes back the padding of the last row, so the card ends as close
+   under its last line as under a note. */
+.section-list {
+  display: grid;
+  margin: 0 -10px -7px;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  inline-size: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-1);
+  font-size: 13.5px;
+  line-height: 1.4;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+
+.row:active {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--tint);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .row {
+    transition: background-color 160ms var(--ease-out), scale 140ms var(--ease-out);
+  }
+
+  .row:active {
+    scale: 0.985;
+  }
+}
+
+.row-title {
+  flex: 1;
+  overflow: clip;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.row-meta {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* Lightbox */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink-1);
+  opacity: 0;
+  transition: opacity 180ms var(--ease-out);
+}
+
+.lightbox[open] {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+}
+
+.lightbox.is-closing {
+  opacity: 0;
+}
+
+@starting-style {
+  .lightbox[open] {
+    opacity: 0;
+  }
+}
+
+.lightbox::backdrop {
+  background: transparent;
+}
+
+.lightbox-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  block-size: 44px;
+  padding-inline: 18px 8px;
+  border-block-end: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.lightbox-title {
+  flex: 1;
+  margin: 0;
+  overflow: clip;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lightbox-open {
+  flex: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.lightbox-open:active {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lightbox-open:hover {
+    color: var(--ink-1);
+    background: var(--tint);
+  }
+}
+
+.lightbox-body {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.lightbox-body iframe {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+  background: white;
+}
+
+.lightbox-media {
+  display: grid;
+  place-items: center;
+  block-size: 100%;
+  padding: 32px;
+}
+
+.lightbox-media img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.lightbox-doc {
+  block-size: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 48px 24px 72px;
+}
+
+.lightbox-doc .prose {
+  max-inline-size: 44rem;
+  margin-inline: auto;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.lightbox-doc .prose h3 {
+  font-size: 1.35em;
+  letter-spacing: -0.015em;
+}
+
+.lightbox-doc .prose h4 {
+  font-size: 1.12em;
+}
+
+.lightbox-doc .prose pre code {
+  font-size: 13px;
+}
+
+.lightbox-note {
+  display: grid;
+  place-items: center;
+  block-size: 100%;
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+/* Status line: shown only while something is wrong */
+
+.status {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.status.is-shown {
+  opacity: 1;
+}
+
+.tray.is-shown ~ .status {
+  inset-block-end: 62px;
+}
+
+/* Keys */
+
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 20px;
+  block-size: 20px;
+  padding-inline: 5px;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--ink-2);
+  font: 500 11.5px/1 var(--sans);
+  white-space: nowrap;
+}
+
+/* The bar of marked nodes: shown only while a node is marked */
+
+/* Centred with insets and auto margins, not a -50% shift, so the text stays on whole pixels. */
+.tray {
+  position: fixed;
+  inset-block-end: 16px;
+  inset-inline: 0;
+  inline-size: fit-content;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  padding-inline-start: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px var(--shadow), 0 10px 28px -10px var(--shadow);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 180ms var(--ease-out), visibility 0s linear 180ms;
+}
+
+.tray.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 180ms var(--ease-out), visibility 0s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tray {
+    translate: 0 6px;
+    transition: opacity 180ms var(--ease-out), translate 220ms var(--ease-out), visibility 0s linear 220ms;
+  }
+
+  .tray.is-shown {
+    translate: 0 0;
+    transition: opacity 180ms var(--ease-out), translate 220ms var(--ease-out), visibility 0s;
+  }
+}
+
+.tray-count {
+  padding-inline-end: 6px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tray-dot {
+  color: var(--ink-3);
+}
+
+.tray-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-1);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+
+.tray-action kbd {
+  min-inline-size: 18px;
+  block-size: 18px;
+  color: var(--ink-3);
+}
+
+.tray-action:active {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tray-action:hover {
+    background: var(--tint);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tray-action {
+    transition: background-color 160ms var(--ease-out), scale 140ms var(--ease-out);
+  }
+
+  .tray-action:active {
+    scale: 0.97;
+  }
+}
+
+/* With the panel open, the bar and the find field centre in the space left of it. */
+@media (width >= 56rem) {
+  .has-panel :is(.tray, .find) {
+    inset-inline-end: calc(var(--panel-width) + 12px);
+  }
+}
+
+/* The ? button and the sheet with the shortcuts and the settings */
+
+.corner-button {
+  position: fixed;
+  inset-block-end: 14px;
+  inset-inline-start: 14px;
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.corner-button::after {
+  content: "";
+  position: absolute;
+  inset: min(0px, (100% - 44px) / 2);
+}
+
+.corner-button:active {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .corner-button:hover {
+    border-color: var(--edge-strong);
+    color: var(--ink-1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .corner-button {
+    transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out), scale 140ms var(--ease-out);
+  }
+
+  .corner-button:active {
+    scale: 0.94;
+  }
+}
+
+.sheet {
+  position: fixed;
+  inset: auto auto 50px 14px;
+  inline-size: min(41rem, calc(100vw - 28px));
+  max-inline-size: none;
+  max-block-size: calc(100dvh - 64px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink-1);
+  box-shadow: 0 1px 2px var(--shadow), 0 16px 48px -12px var(--shadow);
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out), display 160ms allow-discrete, overlay 160ms allow-discrete;
+}
+
+.sheet[open] {
+  opacity: 1;
+}
+
+@starting-style {
+  .sheet[open] {
+    opacity: 0;
+  }
+}
+
+.sheet::backdrop {
+  background: transparent;
+}
+
+.sheet:focus-visible {
+  outline: 2px solid transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet {
+    translate: 0 6px;
+    transition: opacity 160ms var(--ease-out), translate 200ms var(--ease-out), display 200ms allow-discrete, overlay 200ms allow-discrete;
+  }
+
+  .sheet[open] {
+    translate: 0 0;
+  }
+
+  @starting-style {
+    .sheet[open] {
+      translate: 0 6px;
+    }
+  }
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 24px 36px;
+  padding: 20px 22px 22px;
+}
+
+.sheet-title {
+  margin: 0 0 12px;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 450;
+}
+
+.keys {
+  display: grid;
+  margin: 0;
+}
+
+.keys > div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 26px;
+}
+
+.keys > .keys-gap {
+  margin-block-start: 10px;
+}
+
+.keys dt {
+  display: flex;
+  gap: 3px;
+}
+
+.keys dd {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.settings {
+  display: grid;
+  gap: 16px;
+}
+
+.setting {
+  display: grid;
+  gap: 7px;
+}
+
+.setting-name {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--tint);
+}
+
+.segmented label {
+  position: relative;
+  flex: 1;
+  display: grid;
+}
+
+/* The radio sits over its option, so a click and the arrow keys work as on any radio group. */
+.segmented input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  padding: 4px 10px;
+  border-radius: 7px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  text-align: center;
+  pointer-events: none;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+}
+
+.segmented input:checked + span {
+  background: var(--raised);
+  color: var(--ink-1);
+  box-shadow: 0 0 0 1px var(--hairline), 0 1px 2px var(--shadow);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 1px;
+}
+
+.segmented input:not(:checked):active + span {
+  background: var(--tint-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .segmented input:not(:checked):hover + span {
+    color: var(--ink-1);
+  }
+}
+
+/* Find: a small field at the top, shown only while the user looks for a node */
+
+.find {
+  position: fixed;
+  inset-block-start: 14px;
+  inset-inline: 0;
+  inline-size: min(24rem, calc(100vw - 28px));
+  margin-inline: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px var(--shadow), 0 12px 32px -10px var(--shadow);
+  overflow: clip;
+}
+
+.find[hidden] {
+  display: none;
+}
+
+.find-input {
+  display: block;
+  inline-size: 100%;
+  block-size: 40px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-1);
+  font: 450 14px var(--sans);
+  outline: 2px solid transparent;
+}
+
+.find-input::placeholder {
+  color: var(--ink-3);
+}
+
+@media (pointer: coarse) {
+  .find-input {
+    font-size: max(16px, 1rem);
+  }
+}
+
+.find-list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-block-start: 1px solid var(--hairline);
+}
+
+.find-list:empty {
+  display: none;
+}
+
+.find-item {
+  display: grid;
+  gap: 1px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.find-item[aria-selected="true"] {
+  background: var(--tint-strong);
+}
+
+.find-label {
+  color: var(--ink-1);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.find-snippet {
+  overflow: clip;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.find-none {
+  padding: 7px 10px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+/* Compare: one column for each marked node */
+
+.compare {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--bg);
+  color: var(--ink-1);
+  opacity: 0;
+  transition: opacity 180ms var(--ease-out), display 180ms allow-discrete, overlay 180ms allow-discrete;
+}
+
+.compare[open] {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+}
+
+@starting-style {
+  .compare[open] {
+    opacity: 0;
+  }
+}
+
+.compare::backdrop {
+  background: transparent;
+}
+
+.compare-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  block-size: 44px;
+  padding-inline: 18px 8px;
+  border-block-end: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.compare-title {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Columns side by side. When they do not fit, the row scrolls sideways and stops at each one. */
+.compare-body {
+  flex: 1;
+  min-block-size: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(min(18rem, 86vw), 34rem);
+  justify-content: safe center;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: x mandatory;
+}
+
+.compare-body:focus-visible {
+  outline: 2px solid transparent;
+}
+
+.compare-col {
+  padding: 32px 28px 72px;
+  border-inline-start: 1px solid var(--hairline);
+  scroll-snap-align: start;
+}
+
+.compare-col:first-child {
+  border-inline-start: 0;
+}
+
+.compare-label {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.compare-meta {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare-head + .prose {
+  margin-block-start: 18px;
+}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Map</title>
+  <link rel="preload" href="/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/map.css">
+  <script src="/theme.js"></script>
+  <script type="module" src="/map.js"></script>
+</head>
+<body>
+  <svg class="canvas" id="canvas" role="group" aria-label="Mind map" tabindex="-1">
+    <g id="world">
+      <g id="edges-dim"></g>
+      <g id="edges"></g>
+      <g id="path"></g>
+      <path class="journey" id="journey"/>
+      <g id="links"></g>
+      <g id="nodes"></g>
+    </g>
+  </svg>
+
+  <aside class="panel" id="panel" aria-labelledby="panel-title" inert>
+    <header class="panel-head">
+      <h2 class="panel-title" id="panel-title" tabindex="-1"></h2>
+      <button class="icon-button" id="panel-close" type="button" aria-label="Close">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="panel-body">
+      <p class="panel-state" id="panel-state"></p>
+      <div class="prose" id="panel-note"></div>
+      <section class="section" id="panel-files" hidden>
+        <h3 class="section-title">Attachments</h3>
+        <ul class="section-list" id="panel-files-list"></ul>
+      </section>
+      <section class="section" id="panel-related" hidden>
+        <h3 class="section-title">Related</h3>
+        <ul class="section-list" id="panel-related-list"></ul>
+      </section>
+    </div>
+  </aside>
+
+  <div class="find" id="find" hidden>
+    <input class="find-input" id="find-input" type="text" placeholder="Find a node" autocomplete="off" spellcheck="false"
+      role="combobox" aria-label="Find a node" aria-autocomplete="list" aria-controls="find-list" aria-expanded="false">
+    <ul class="find-list" id="find-list" role="listbox" aria-label="Results"></ul>
+  </div>
+
+  <div class="tray" id="tray" role="toolbar" aria-label="Marked nodes" inert>
+    <span class="tray-count" id="tray-count" aria-live="polite"></span>
+    <span class="tray-dot" aria-hidden="true">·</span>
+    <button class="tray-action" id="tray-compare" type="button">Compare <kbd>V</kbd></button>
+    <span class="tray-dot" aria-hidden="true">·</span>
+    <button class="tray-action" id="tray-clear" type="button">Clear <kbd>⇧X</kbd></button>
+  </div>
+
+  <button class="corner-button" id="sheet-button" type="button" aria-label="Shortcuts and settings" aria-haspopup="dialog">?</button>
+
+  <dialog class="sheet" id="sheet" aria-label="Shortcuts and settings" tabindex="-1">
+    <div class="sheet-grid">
+      <section class="sheet-part" aria-labelledby="keys-title">
+        <h2 class="sheet-title" id="keys-title">Shortcuts</h2>
+        <dl class="keys">
+          <div><dt><kbd>←</kbd><kbd>→</kbd></dt><dd>Parent or child</dd></div>
+          <div><dt><kbd>↑</kbd><kbd>↓</kbd></dt><dd>Sibling, or next in the column</dd></div>
+          <div><dt><kbd>[</kbd><kbd>]</kbd></dt><dd>Back or forward in the journey</dd></div>
+          <div><dt><kbd>.</kbd></dt><dd>Current node</dd></div>
+          <div><dt><kbd>G</kbd></dt><dd>Goal</dd></div>
+          <div><dt><kbd>/</kbd></dt><dd>Find a node</dd></div>
+          <div class="keys-gap"><dt><kbd>Enter</kbd></dt><dd>Open the panel</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>Close the top layer</dd></div>
+          <div class="keys-gap"><dt><kbd>X</kbd></dt><dd>Mark for compare, or ⇧ click</dd></div>
+          <div><dt><kbd>⇧X</kbd></dt><dd>Clear the marks</dd></div>
+          <div><dt><kbd>V</kbd></dt><dd>Compare the marked nodes</dd></div>
+          <div class="keys-gap"><dt><kbd>F</kbd></dt><dd>Fit the map</dd></div>
+          <div><dt><kbd>+</kbd><kbd>−</kbd><kbd>0</kbd></dt><dd>Zoom in, out, 100%</dd></div>
+          <div><dt><kbd>?</kbd></dt><dd>This sheet</dd></div>
+        </dl>
+      </section>
+      <section class="sheet-part" aria-labelledby="settings-title">
+        <h2 class="sheet-title" id="settings-title">Settings</h2>
+        <div class="settings" id="settings">
+          <div class="setting" role="radiogroup" aria-labelledby="set-highlight">
+            <span class="setting-name" id="set-highlight">Highlight</span>
+            <div class="segmented">
+              <label><input type="radio" name="highlight" value="path"><span>Path</span></label>
+              <label><input type="radio" name="highlight" value="journey"><span>Journey</span></label>
+              <label><input type="radio" name="highlight" value="none"><span>None</span></label>
+            </div>
+          </div>
+          <div class="setting" role="radiogroup" aria-labelledby="set-links">
+            <span class="setting-name" id="set-links">Cross links</span>
+            <div class="segmented">
+              <label><input type="radio" name="links" value="selected"><span>Selected</span></label>
+              <label><input type="radio" name="links" value="always"><span>Always</span></label>
+              <label><input type="radio" name="links" value="never"><span>Never</span></label>
+            </div>
+          </div>
+          <div class="setting" role="radiogroup" aria-labelledby="set-focus">
+            <span class="setting-name" id="set-focus">Focus</span>
+            <div class="segmented">
+              <label><input type="radio" name="focus" value="off"><span>Off</span></label>
+              <label><input type="radio" name="focus" value="on"><span>On</span></label>
+            </div>
+          </div>
+          <div class="setting" role="radiogroup" aria-labelledby="set-theme">
+            <span class="setting-name" id="set-theme">Theme</span>
+            <div class="segmented">
+              <label><input type="radio" name="theme" value="system"><span>System</span></label>
+              <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+              <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog class="compare" id="compare" aria-labelledby="compare-title">
+    <header class="compare-bar">
+      <h2 class="compare-title" id="compare-title">Compare</h2>
+      <button class="icon-button" id="compare-close" type="button" aria-label="Close">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="compare-body" id="compare-body" tabindex="0" autofocus></div>
+  </dialog>
+
+  <dialog class="lightbox" id="lightbox" aria-labelledby="lightbox-title">
+    <header class="lightbox-bar">
+      <h2 class="lightbox-title" id="lightbox-title"></h2>
+      <a class="lightbox-open" id="lightbox-open" href="/" target="_blank" rel="noopener">Open in new tab</a>
+      <button class="icon-button" id="lightbox-close" type="button" aria-label="Close">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="lightbox-body" id="lightbox-body"></div>
+  </dialog>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</body>
+</html>
