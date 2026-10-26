@@ -1,0 +1,6 @@
+interface:
+  display_name: "Article audio"
+  short_description: "Narrate a Markdown article with ElevenLabs Eleven v4"
+
+policy:
+  allow_implicit_invocation: false
