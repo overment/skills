@@ -4,12 +4,12 @@ description: Builds a self-contained HTML report of what a pull request changes 
 license: MIT
 metadata:
   author: overment
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # System diff
 
-Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path, uses insider names as if the reader had already used the product, and leaves the file in a job or temp folder as `index.html`. The reader decides on the PR and may not read code.
+Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path, uses insider names as if the reader had already used the product, and leaves the file in a job or temp folder as `index.html`. The reader decides on the PR, may not read code, and has never seen this system.
 
 ## Gather the change
 
@@ -19,26 +19,22 @@ Without this skill, an agent builds a sound PR report in a look of its own. It n
 
 ## The report
 
-Four layers. Each links to the next, so a reader goes from the answer to a changed line in a few clicks.
+Four layers. The answer stays first. Each layer links to the next, so a reader goes from the decision to a changed line in a few clicks.
 
-1. **Decision.** The first sentence says what changes for the product and whether to merge. Then the decisions, numbered, each with lettered options and a ★ on the one you recommend, so the user can answer "2b".
-2. **System map.** The parts the PR changes and their direct neighbours. Solid for changed code, dashed for changed behaviour without changed code, faint for context.
-3. **Parts.** One section per changed part: before, after, why, and the risk.
-4. **Files.** Every changed file by its full path, with its line counts and hunks, grouped under the same part names. Name lockfiles and generated files, but leave out their hunks.
+1. **Decision.** The first sentence says what the system is, in one clause, what changes for the people who use it, and whether to merge. Then the decisions, numbered, each with lettered options and a ★ on the one you recommend, so the user can answer "2b". A risk the reader would not see still belongs here when the code can now break unnoticed. Do not drop it to shorten the page.
+2. **System map.** The parts the change touches and their direct neighbours. Each box repeats the clause from the chip. A short label between boxes says how they connect. Solid for changed code, dashed for changed behaviour without changed code, faint for context. Use HTML boxes, not a clipped SVG.
+3. **Parts.** One section per changed part: before, after, why, and the risk. Before and after are what a person saw and sees. Leave open at most the one the recommended option depends on.
+4. **Files.** One element with `id="files"`, closed until the reader opens it. Every changed file by its full path, with its line counts and a real unified hunk (`@@`), grouped under the same part names. Name lockfiles and generated files, but leave out their hunks. Paths stay here, also out of the decisions.
 
-Layers 1–3 are for someone who does not read code. Keep paths, code names and SHAs for the file index, also out of the decisions. The meta line under the title holds the repository, the PR or the range, both short SHAs and the date.
+Layers 1–3 are for someone who does not read code. One name per part, used on the chip, the map, the section and the file group. The meta line under the title holds the repository, the PR or the range, both short SHAs and the date.
 
 ## The reader has not seen this product
 
-A product name is not a definition. "The card", "the reader" and "Gantt arrows" are still insider words. The 0.1.0 run used them with no definition in view, and two decision options still named a path and a selector.
-
-**Glance gloss.** The first time a part is named, the same view shows one clause of 4 to 14 words: what a person does with that part. Put the clause on a chip directly under the decision sentence, and repeat that same clause on the map node. Link the name in the decision to the chip. Do not put the clause in parentheses in the decision sentence, do not hide it in a hover title, and do not add a glossary section. Later mentions may use the name alone.
+A product name is not a definition. "The card" and "Gantt arrows" are still insider words. Where a name first matters, in the decision, the same view shows a chip: the name, then one clause for what a person does with that part. Link the name to the chip. Repeat that clause on the map box. Do not put the clause in parentheses in the decision sentence, do not hide it in a hover title, and do not add a glossary section. A word the clause itself uses, such as "bar", needs its own few words in that same clause. Later mentions may use the name alone.
 
 **Product scene.** Before and after are what a person saw and what they see now, one or two sentences each. A path, a function or a selector is not a scene.
 
-**One screen, then a click.** The open page is the decision, its glance chips and the map. Each changed part is a `<details>` element; leave open at most the one the recommended option depends on. Every changed path lives in one closed `<details data-layer="files">`, grouped under the part names. A part links to that index. It does not repeat the paths.
-
-Mark the decision with `data-layer="decision"`. Each chip has `id`, `data-gloss` and `data-name` (the phrase the decision uses), and its clause is a child with `data-clause`. Each map node and each part has `data-part` set to that id. The part has `data-scene="before"` and `data-scene="after"`. `check.mjs` fails a clause outside 4–14 words, a decision name that never links to its gloss, a path or a selector outside the closed file index, and more than one open part.
+**Cold read.** A passing checker does not prove the reader can follow the page. Before you hand over, run `check.mjs --text` and list every name that text never explains. A fresh agent that sees only that text is the real check. If you cannot start one, say so and do the read yourself.
 
 ## Look
 
@@ -50,7 +46,7 @@ Before you hand over, run:
 git diff --name-only <base>...<head> | node <skill-dir>/scripts/check.mjs <report.html> --files -
 ```
 
-It fails on a colour with a hue, on anything loaded from the network, on a changed file that the report does not name, and on the gloss and disclosure failures above. Pass `--allow-hue` only for an accent the user asked for.
+It fails on a colour with a hue, including a named colour and a single-quoted value, on a linked asset (network or relative), on a changed file missing from the visible text, and on a changed path above `id="files"`. A comment that contains `id="files"` does not count as the file layer. It warns when that layer has no `@@` hunk. It does not judge whether a gloss is true. Pass `--allow-hue` only for an accent the user asked for.
 
 ## Save and hand over
 
