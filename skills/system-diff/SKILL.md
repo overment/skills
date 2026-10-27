@@ -4,12 +4,12 @@ description: Builds a self-contained HTML report of what a pull request changes 
 license: MIT
 metadata:
   author: overment
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # System diff
 
-Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path and leaves the file in a job or temp folder as `index.html`. The reader decides on the PR and may not read code.
+Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path, uses insider names as if the reader had already used the product, and leaves the file in a job or temp folder as `index.html`. The reader decides on the PR and may not read code.
 
 ## Gather the change
 
@@ -26,7 +26,19 @@ Four layers. Each links to the next, so a reader goes from the answer to a chang
 3. **Parts.** One section per changed part: before, after, why, and the risk.
 4. **Files.** Every changed file by its full path, with its line counts and hunks, grouped under the same part names. Name lockfiles and generated files, but leave out their hunks.
 
-Layers 1–3 are for someone who does not read code. Name parts by what they do for the product: "the card a reader opens", not `client/popover.ts`. Keep paths, code names and SHAs for layer 4, also out of the decisions. The meta line under the title holds the repository, the PR, both short SHAs and the date.
+Layers 1–3 are for someone who does not read code. Keep paths, code names and SHAs for the file index, also out of the decisions. The meta line under the title holds the repository, the PR or the range, both short SHAs and the date.
+
+## The reader has not seen this product
+
+A product name is not a definition. "The card", "the reader" and "Gantt arrows" are still insider words. The 0.1.0 run used them with no definition in view, and two decision options still named a path and a selector.
+
+**Glance gloss.** The first time a part is named, the same view shows one clause of 4 to 14 words: what a person does with that part. Put the clause on a chip directly under the decision sentence, and repeat that same clause on the map node. Link the name in the decision to the chip. Do not put the clause in parentheses in the decision sentence, do not hide it in a hover title, and do not add a glossary section. Later mentions may use the name alone.
+
+**Product scene.** Before and after are what a person saw and what they see now, one or two sentences each. A path, a function or a selector is not a scene.
+
+**One screen, then a click.** The open page is the decision, its glance chips and the map. Each changed part is a `<details>` element; leave open at most the one the recommended option depends on. Every changed path lives in one closed `<details data-layer="files">`, grouped under the part names. A part links to that index. It does not repeat the paths.
+
+Mark the decision with `data-layer="decision"`. Each chip has `id`, `data-gloss` and `data-name` (the phrase the decision uses), and its clause is a child with `data-clause`. Each map node and each part has `data-part` set to that id. The part has `data-scene="before"` and `data-scene="after"`. `check.mjs` fails a clause outside 4–14 words, a decision name that never links to its gloss, a path or a selector outside the closed file index, and more than one open part.
 
 ## Look
 
@@ -38,10 +50,10 @@ Before you hand over, run:
 git diff --name-only <base>...<head> | node <skill-dir>/scripts/check.mjs <report.html> --files -
 ```
 
-It fails on a colour with a hue, on anything loaded from the network, and on a changed file that the report does not name. Pass `--allow-hue` only for an accent the user asked for.
+It fails on a colour with a hue, on anything loaded from the network, on a changed file that the report does not name, and on the gloss and disclosure failures above. Pass `--allow-hue` only for an accent the user asked for.
 
 ## Save and hand over
 
 - Write the report to `~/Downloads/<repo>-pr-<n>.html`, or `~/Downloads/<repo>-<base7>-<head7>.html` for a commit range. Write it there directly: job, temp and ignored folders get cleared, and copies drift apart. A new run for the same PR overwrites the same file. If the project's instructions name a folder for evidence, put one copy there too.
-- Open the report only when the user asked for that. A sub-agent or background job never opens it, even when its brief says so: it returns the path to the agent that started it.
+- Check the rendered page in a headless or off-screen browser. Show it to the user only when they asked. A sub-agent or background job never shows it, even when its brief says so, and returns the path.
 - Reply with the decision sentence first, then the path.
