@@ -9,7 +9,7 @@ metadata:
 
 # System diff
 
-Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path, uses insider names as if the reader had already used the product, and leaves the file in a job or temp folder as `index.html`. The reader decides on the PR, may not read code, and has never seen this system.
+Without this skill, an agent builds a sound PR report in a look of its own. It names the map's parts by file path and leaves the file in a job or temp folder as `index.html`. Even with the look fixed, it writes for someone who already knows the system. The reader decides on the PR, may not read code, and has never seen this system.
 
 ## Gather the change
 
@@ -19,26 +19,28 @@ Without this skill, an agent builds a sound PR report in a look of its own. It n
 
 ## The report
 
-Four layers. The answer stays first. Each layer links to the next, so a reader goes from the decision to a changed line in a few clicks.
+Five layers. Each links to the next, so a reader goes from the answer to a changed line in a few clicks, and stops at the depth they need.
 
-1. **Decision.** The first sentence says what the system is, in one clause, what changes for the people who use it, and whether to merge. Then the decisions, numbered, each with lettered options and a ★ on the one you recommend, so the user can answer "2b". A risk the reader would not see still belongs here when the code can now break unnoticed. Do not drop it to shorten the page.
-2. **System map.** The parts the change touches and their direct neighbours. Each box repeats the clause from the chip. A short label between boxes says how they connect. Solid for changed code, dashed for changed behaviour without changed code, faint for context. Use HTML boxes, not a clipped SVG.
-3. **Parts.** One section per changed part: before, after, why, and the risk. Before and after are what a person saw and sees. Leave open at most the one the recommended option depends on.
-4. **Files.** One element with `id="files"`, closed until the reader opens it. Every changed file by its full path, with its line counts and a real unified hunk (`@@`), grouped under the same part names. Name lockfiles and generated files, but leave out their hunks. Paths stay here, also out of the decisions.
+1. **Answer.** One short sentence says what the system is and whether to merge. The next one or two say what changes for the people who use it. Claim only what the code or a run shows: "prefers", not "always".
+2. **Decisions.** Numbered, each with lettered options and a ★ on the one you recommend, so the user can answer "2b". The answer and the decisions fit the first screen. Say each in product words: what a user would notice or what could now break unnoticed, and what each option leads to. Product words change how a risk is told, not which risks are told: keep every risk you found in the code, even one no user sees.
+3. **System map.** The parts the PR changes and their direct neighbours. Each box holds the part's name and a few words on what it is, so the map is the page's glossary. Solid for changed code, dashed for changed behaviour without changed code, faint for context.
+4. **Parts.** One section per changed part. It opens with one line on what a user notices; before, after, why and the risk sit under it. With more than about seven parts, fold each section to that line.
+5. **Files.** In an element with `id="files"`: every changed file by its full path, with its line counts and hunks, grouped under the same part names. Name lockfiles and generated files, but leave out their hunks.
 
-Layers 1–3 are for someone who does not read code. One name per part, used on the chip, the map, the section and the file group. The meta line under the title holds the repository, the PR or the range, both short SHAs and the date.
+Layers 1–4 are for someone who does not read code. Keep paths, code names and SHAs for the file layer. The meta line under the title holds the repository, the PR or range, both short SHAs and the date.
 
-## The reader has not seen this product
+## Words a stranger can follow
 
-A product name is not a definition. "The card" and "Gantt arrows" are still insider words. Where a name first matters, in the decision, the same view shows a chip: the name, then one clause for what a person does with that part. Link the name to the chip. Repeat that clause on the map box. Do not put the clause in parentheses in the decision sentence, do not hide it in a hover title, and do not add a glossary section. A word the clause itself uses, such as "bar", needs its own few words in that same clause. Later mentions may use the name alone.
+This is the curse of knowledge: you know this system, so you can't see which of your words are private to it. The reader can.
 
-**Product scene.** Before and after are what a person saw and what they see now, one or two sentences each. A path, a function or a selector is not a scene.
-
-**Cold read.** A passing checker does not prove the reader can follow the page. Before you hand over, run `check.mjs --text` and list every name that text never explains. A fresh agent that sees only that text is the real check. If you cannot start one, say so and do the read yourself.
+- **One name per part.** Name it by what it does for the product ("the card a reader opens", not `client/popover.ts`). Choose the name once, and use it on the map, in the decisions, as the section heading and over the files. A second name reads as a second part.
+- **Gloss at first use.** Where a name first appears, usually in a decision, say what it is in a few words in the same view: in place, or on a one-line note beside it that the name links to. "The card: the box that opens when a reader clicks a part." Do not stack those notes above the decisions. A gloss behind a hover or in a glossary further down is not in view. A gloss must not rest on another unexplained object: an arrow "between bars" still has to say that a bar is one scheduled task. After that, use the name alone and link it to its section. A thing the reader meets only once needs a description, not a name.
+- **Scenes, not mechanisms.** Before and after are what a user sees or does: a screen, a message, a click, a number on the page, a command's output. Scores, thresholds and function names go into why, in product words, or into the file layer. When the product runs at both ends, show the same scene twice: a screenshot, a rendered sample or the real output.
+- **Cold read.** Before you hand over, give a fresh sub-agent only the output of `node <skill-dir>/scripts/check.mjs <report.html> --text` and ask which words it cannot explain from the page alone. Gloss or replace each one. If you can't start a sub-agent, read that text yourself and say that a stranger has not read the page.
 
 ## Look
 
-One light page in grays only: white background, ink `#111`, then `#555`, `#888`, `#ddd` and `#f5f5f5`, and `color-scheme: light`. Show state by fill, outline, dash or hatch, never by hue. Mark diff lines with `+` and `−` and a gray tint. Use the system font stack at 15px/1.55, `ui-monospace` for code, and one text column of about 72ch; the map may be wider. No kicker text: no eyebrow labels, no intro paragraph, no summary box that repeats the answer. Inline every style, script and image, so the file works offline. A UI change may embed screenshots in their real colours; the page around them stays gray.
+One light page in grays only: white background, ink `#111`, then `#555`, `#888`, `#ddd` and `#f5f5f5`, and `color-scheme: light`. Show state by fill, outline, dash or hatch, never by hue. Mark diff lines with `+` and `−` and a gray tint. Use the system font stack at 15px/1.55, `ui-monospace` for code, and one text column of about 72ch; the map may be wider. No kicker text: no eyebrow labels, no intro paragraph, no summary box that repeats the answer. Inline every style, script and image, so the file works offline. A UI change may embed screenshots in their real colours; the page around them stays gray. Look at the rendered page in a headless or off-screen browser before you hand over, the map first: text that leaves its box or a clipped label is a defect.
 
 Before you hand over, run:
 
@@ -46,10 +48,10 @@ Before you hand over, run:
 git diff --name-only <base>...<head> | node <skill-dir>/scripts/check.mjs <report.html> --files -
 ```
 
-It fails on a colour with a hue, including a named colour and a single-quoted value, on a linked asset (network or relative), on a changed file missing from the visible text, and on a changed path above `id="files"`. A comment that contains `id="files"` does not count as the file layer. It warns when that layer has no `@@` hunk. It does not judge whether a gloss is true. Pass `--allow-hue` only for an accent the user asked for.
+It fails on a colour with a hue, on anything the page loads from outside itself, on a changed file that the report does not name in its text, and on a changed file's path above the file layer. A comment that contains `id="files"` is not the file layer. It warns on code above the file layer, and when that layer has no `@@` hunk. Pass `--allow-hue` only for an accent the user asked for. It can't judge whether a gloss is clear; the cold read does that.
 
 ## Save and hand over
 
 - Write the report to `~/Downloads/<repo>-pr-<n>.html`, or `~/Downloads/<repo>-<base7>-<head7>.html` for a commit range. Write it there directly: job, temp and ignored folders get cleared, and copies drift apart. A new run for the same PR overwrites the same file. If the project's instructions name a folder for evidence, put one copy there too.
-- Check the rendered page in a headless or off-screen browser. Show it to the user only when they asked. A sub-agent or background job never shows it, even when its brief says so, and returns the path.
-- Reply with the decision sentence first, then the path.
+- Show the report to the user (a window or tab on their screen) only when they asked for that. Rendering it in a headless or off-screen browser to check it is not showing it. A sub-agent or background job never shows it, even when its brief says so: it returns the path to the agent that started it.
+- Reply with the answer sentence first, then the path.
